@@ -1036,7 +1036,6 @@ app.post('/delete_comment_reply', (req, res) => {
 
 
 
-
 // linkにデータをレコード挿入するエンドポイント
 // 正しいリンクが挿入されたときに200を返しresultをjsonで返す
 // リンクが空のときに400 Bad Requestを返す

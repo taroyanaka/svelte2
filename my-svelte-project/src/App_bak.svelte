@@ -625,6 +625,7 @@ password: <input bind:value={PASSWORD} type="password" placeholder="password">
 		<span>data1: {JSON.parse(item.data_json_str).data1}</span>
 		<span>data2: {JSON.parse(item.data_json_str).data2}</span>
 		<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
+
 		</li>
 		</ul>
 
