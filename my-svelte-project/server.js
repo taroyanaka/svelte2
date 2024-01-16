@@ -835,7 +835,6 @@ app.post('/insert_tag', (req, res) => {
 
 app.post('/get_tags_for_autocomplete', (req, res) => {
     try {
-    console.log(req.body.search_tag);
     const user = get_user_with_permission(req);
     user.readable === 1 ? null : (()=>{throw new Error('読み込み権限がありません')})();
     const tags = 

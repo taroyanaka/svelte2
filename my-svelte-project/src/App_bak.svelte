@@ -5,9 +5,6 @@
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 	let hello_fetch_data = [];
 
-	let calendar_val = null;
-	let all_event = null;
-
 	let NAME = 'user1';
 	let TEST_MODE = 'TEST_MODE';
 	// let TEST_MODE = 'PRODUCTION_MODE';
@@ -348,8 +345,9 @@
 	}
 	
 	const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='id', REQ_TAG_PARAM, USER_PARAM}) => {
-		console.log(ORDER_BY_COLUMN_PARAM);
+		// console.log(ORDER_BY_COLUMN_PARAM);
 		try {
+			console.log(REQ_TAG_PARAM);
 		ORDER_BY = ORDER_BY_PARAM; // ? ORDER_BY_PARAM : 'DESC';
 		ORDER_BY_COLUMN = ORDER_BY_COLUMN_PARAM; // ? ORDER_BY_COLUMN_PARAM : 'links.id';
 		REQ_TAG = REQ_TAG_PARAM; // ? REQ_TAG_PARAM : null;
@@ -406,6 +404,14 @@
 		try {
 		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
 		const DATA_JSON_STR = JSON.stringify({data1: DATA1, data2: DATA2});
+		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
+		await response_handling(RESPONSE);
+		} catch (error) {ERROR_MESSAGE = error.message;}
+	};
+	// copy insert(他のユーザーのlinkをコピーして自分のlinkとして保存する)
+	const fetch_copy_insert_link = async (Other_User_DATA1, Other_User_DATA2) => {
+		try {
+		const DATA_JSON_STR = JSON.stringify({data1: Other_User_DATA1, data2: Other_User_DATA2});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
 		await response_handling(RESPONSE);
 		} catch (error) {ERROR_MESSAGE = error.message;}
@@ -522,68 +528,23 @@
 			console.log(error);		
 		}
 	});	
-	// afterUpdate(fetch_hello);
+	afterUpdate(async () => {
+		try {
+			// await fetch_hello({});
+			await fetch_get_tags_for_autocomplete();	
+		} catch (error) {
+			console.log(error);		
+		}
+	});
 
 
 
 
 
-
-	// document.addEventListener('DOMContentLoaded', function() {
-    //     var calendarEl = document.getElementById('calendar');
-    //     var calendar = new FullCalendar.Calendar(calendarEl, {
-    //       initialView: 'dayGridMonth'
-    //     });
-    //     calendar.render();
-    //   });
-
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
-
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        dateClick: function(info) {
-            // クリックされた日付にイベントを追加
-            calendar.addEvent({
-                // title: '新しいイベント',
-                title: new_event(),
-                start: info.dateStr,
-                allDay: true
-            });
-        }
-    });
-
-    calendar.render();
-	calendar_val = calendar;
-});
-
-// ポップアップで'新しいイベント'の内容を入力する関数
-function new_event() {
-	var title = prompt('予定を入力してください');
-	if (title) {
-		return title;
-	}
-}
-// イベント表示
-function show_event(){
-	    // イベントを一括で取り出す
-	var events = calendar_val.getEvents();
-    events.forEach(function(event) {
-        console.log('Title: ' + event.title + ', Start: ' + event.start);
-    });
-	all_event = events;
-}
 
 
 </script>
 <!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
-<span>{all_event}</span>
-<span>{calendar_val}</span>
-<!-- show_eventのボタン -->
-<button on:click={show_event}>show_event</button>
-
-<div id='calendar'></div>
-
 
 name: <input bind:value={NAME} type="text" placeholder="name">
 password: <input bind:value={PASSWORD} type="password" placeholder="password">
@@ -599,6 +560,9 @@ password: <input bind:value={PASSWORD} type="password" placeholder="password">
 	<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>
 </div>
 
+{#each ALL_TAGS as item, index}
+<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
+{/each}
 <ul>
 {#each hello_fetch_data as item, index}
 	<br>
@@ -625,6 +589,10 @@ password: <input bind:value={PASSWORD} type="password" placeholder="password">
 		<span>data1: {JSON.parse(item.data_json_str).data1}</span>
 		<span>data2: {JSON.parse(item.data_json_str).data2}</span>
 		<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
+		<!-- fetch_copy_insert_link 自分自身が所有するlinkの時はボタンを表示しない -->
+		{#if item.username !== NAME}
+		<button on:click={fetch_copy_insert_link(JSON.parse(item.data_json_str).data1, JSON.parse(item.data_json_str).data2)}>fetch_copy_insert_link</button>
+		{/if}
 
 		</li>
 		</ul>
