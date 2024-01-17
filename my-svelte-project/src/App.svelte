@@ -698,6 +698,7 @@ function delete_event(date){
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
+		displayEventTime: false, // イベントの時刻を非表示にする
 		// クリックされた日付にイベントを追加
         // dateClick: function(info) {
         //     calendar.addEvent({
@@ -751,6 +752,9 @@ function delete_event(date){
 
 
 <div class="core">
+	<div class="left_side">
+	<div id='calendar'></div>
+
 	<!-- button -->
 	<button on:click={() => add_event()}>add_event</button>
 	<button on:click={() => show_event()}>show_event</button>
@@ -785,6 +789,97 @@ function delete_event(date){
 	<span>{calendar_val}</span>
 	<!-- show_eventのボタン -->
 	<button on:click={show_event}>show_event</button>
+	</div>
+
+	<div class="right_side">
+	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
+	name: <input bind:value={NAME} type="text" placeholder="name">
+	password: <input bind:value={PASSWORD} type="password" placeholder="password">
+	<div>
+		DATA1:
+		<textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea>
+		DATA2:
+		<textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea>
+		<button on:click={fetch_insert_link} class="insert_link">insert_link</button>
+		<button on:click={() => fetch_hello({})}>CLEAR</button>
+		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
+		<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>
+	</div>
+	{#each ALL_TAGS as item, index}
+	<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
+	{/each}
+	<ul>
+	{#each hello_fetch_data as item, index}
+		<br>
+		<br>
+
+		<li>		
+			<div>
+				{#each item.tags as tags, INDEX}
+				<button on:click={() => req_tag_and_fetch_hello(tags.tag)}>{tags.tag}</button>
+				{/each}
+			</div>
+
+			<div>
+				<input bind:this={TAG_VAL} list="autocomplete_list" type="text" name="" id="hoge" bind:value={TAG} placeholder="tag" on:input={fetch_get_tags_for_autocomplete}>
+				<datalist id="autocomplete_list">
+					{#each ALL_TAGS as item, index}
+					<option value={item.tag}>
+					{/each}
+				</datalist>
+				<button on:click={fetch_insert_tag(item.id)}>fetch_insert_tag</button>
+			</div>
+			<ul>
+			<li>
+			<span>data1: {JSON.parse(item.data_json_str).data1}</span>
+			<span>data2: {JSON.parse(item.data_json_str).data2}</span>
+			<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
+			<!-- fetch_copy_insert_link 自分自身が所有するlinkの時はボタンを表示しない -->
+			{#if item.username !== NAME}
+			<button on:click={fetch_copy_insert_link(JSON.parse(item.data_json_str).data1, JSON.parse(item.data_json_str).data2)}>fetch_copy_insert_link</button>
+			{/if}
+
+			</li>
+			</ul>
+
+			<!-- <div>created_at: {item.created_at}</div> -->
+			<!-- <div>updated_at: {item.updated_at}</div> -->
+			<!-- <div>user_id: {item.user_id}</div> -->
+			<!-- <div>username: {item.username}</div> -->
+			<button on:click={() => user_and_fetch_hello(item.username)}>{item.username}</button>
+			<!-- <div>like_count: {item.like_count}</div> -->
+			<!-- like_countの数だけ😇が表示される -->
+			<!-- {#each Array(item.like_count) as item, index} -->
+			{#each item.likes as item, index}
+			<span>😇</span>
+			{/each}
+			<button on:click={fetch_like_increment_or_decrement(item.id)}>like_increment_or_decrement</button>
+			<div>
+				<input type="text" name="" id="" bind:value={COMMENT} placeholder="comment">
+				<button on:click={fetch_insert_comment(item.id)}>fetch_insert_comment</button>
+			</div>
+			<ul class="comment_zone">{#each item.comments_and_replies as comments_and_reply, INDEX}
+				<li>
+					{comments_and_reply[INDEX]['comment']}
+					<button on:click={() => user_and_fetch_hello(comments_and_reply[INDEX]['username'])}>{comments_and_reply[INDEX]['username']}</button>
+					<button on:click={fetch_delete_comment(comments_and_reply[INDEX]['id'])}>fetch_delete_comment</button>
+				</li>
+					<input bind:value={COMMENT_REPLY} type="text" placeholder="comment_reply">
+					<button on:click={fetch_insert_comment_reply(comments_and_reply[INDEX]['id'])}>fetch_insert_comment_reply</button>
+				<li class="reply_zone">
+					<ul>{#each comments_and_reply['comment_replies'] as comment_reply, INDEX}
+						<li>
+							{comment_reply['reply']}
+							<button on:click={() => user_and_fetch_hello(comment_reply['username'])}>{comment_reply['username']}</button>
+							<button on:click={fetch_delete_comment_reply(comment_reply['id'])}>fetch_delete_comment_reply</button>
+						</li>
+					{/each}</ul>
+				</li>
+	{/each}</ul>
+	</li>
+	{/each}
+	</ul>
+	</div>
 </div>
 
 
@@ -805,7 +900,6 @@ function delete_event(date){
 {/if}
 </div>
 
-<div id='calendar'></div>
 
 
 
@@ -817,96 +911,6 @@ function delete_event(date){
 <!-- <span>{sample}</span> -->
 
 
-<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
-
-name: <input bind:value={NAME} type="text" placeholder="name">
-password: <input bind:value={PASSWORD} type="password" placeholder="password">
-
-<div>
-	DATA1:
-	<textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea>
-	DATA2:
-	<textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea>
-	<button on:click={fetch_insert_link} class="insert_link">insert_link</button>
-	<button on:click={() => fetch_hello({})}>CLEAR</button>
-	<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
-	<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>
-</div>
-
-{#each ALL_TAGS as item, index}
-<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
-{/each}
-<ul>
-{#each hello_fetch_data as item, index}
-	<br>
-	<br>
-
-	<li>		
-		<div>
-			{#each item.tags as tags, INDEX}
-			<button on:click={() => req_tag_and_fetch_hello(tags.tag)}>{tags.tag}</button>
-			{/each}
-		</div>
-
-		<div>
-			<input bind:this={TAG_VAL} list="autocomplete_list" type="text" name="" id="hoge" bind:value={TAG} placeholder="tag" on:input={fetch_get_tags_for_autocomplete}>
-			<datalist id="autocomplete_list">
-				{#each ALL_TAGS as item, index}
-				<option value={item.tag}>
-				{/each}
-			</datalist>
-			<button on:click={fetch_insert_tag(item.id)}>fetch_insert_tag</button>
-		</div>
-		<ul>
-		<li>
-		<span>data1: {JSON.parse(item.data_json_str).data1}</span>
-		<span>data2: {JSON.parse(item.data_json_str).data2}</span>
-		<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
-		<!-- fetch_copy_insert_link 自分自身が所有するlinkの時はボタンを表示しない -->
-		{#if item.username !== NAME}
-		<button on:click={fetch_copy_insert_link(JSON.parse(item.data_json_str).data1, JSON.parse(item.data_json_str).data2)}>fetch_copy_insert_link</button>
-		{/if}
-
-		</li>
-		</ul>
-
-		<!-- <div>created_at: {item.created_at}</div> -->
-		<!-- <div>updated_at: {item.updated_at}</div> -->
-		<!-- <div>user_id: {item.user_id}</div> -->
-		<!-- <div>username: {item.username}</div> -->
-		<button on:click={() => user_and_fetch_hello(item.username)}>{item.username}</button>
-		<!-- <div>like_count: {item.like_count}</div> -->
-		<!-- like_countの数だけ😇が表示される -->
-		<!-- {#each Array(item.like_count) as item, index} -->
-		{#each item.likes as item, index}
-		<span>😇</span>
-		{/each}
-		<button on:click={fetch_like_increment_or_decrement(item.id)}>like_increment_or_decrement</button>
-		<div>
-			<input type="text" name="" id="" bind:value={COMMENT} placeholder="comment">
-			<button on:click={fetch_insert_comment(item.id)}>fetch_insert_comment</button>
-		</div>
-		<ul class="comment_zone">{#each item.comments_and_replies as comments_and_reply, INDEX}
-			<li>
-				{comments_and_reply[INDEX]['comment']}
-				<button on:click={() => user_and_fetch_hello(comments_and_reply[INDEX]['username'])}>{comments_and_reply[INDEX]['username']}</button>
-				<button on:click={fetch_delete_comment(comments_and_reply[INDEX]['id'])}>fetch_delete_comment</button>
-			</li>
-				<input bind:value={COMMENT_REPLY} type="text" placeholder="comment_reply">
-				<button on:click={fetch_insert_comment_reply(comments_and_reply[INDEX]['id'])}>fetch_insert_comment_reply</button>
-			<li class="reply_zone">
-				<ul>{#each comments_and_reply['comment_replies'] as comment_reply, INDEX}
-					<li>
-						{comment_reply['reply']}
-						<button on:click={() => user_and_fetch_hello(comment_reply['username'])}>{comment_reply['username']}</button>
-						<button on:click={fetch_delete_comment_reply(comment_reply['id'])}>fetch_delete_comment_reply</button>
-					</li>
-				{/each}</ul>
-			</li>
-		{/each}</ul>
-</li>
-{/each}
-</ul>
 
 <main>
 	<a href="https://taroyanaka.github.io/svelte2/">this site is https://taroyanaka.github.io/svelte2/</a>
@@ -950,15 +954,23 @@ password: <input bind:value={PASSWORD} type="password" placeholder="password">
 		height: 2rem;
 	}
 	#calendar{
-		width: 20rem;
-		height: 20rem;
+		width: 100%;
+		/* height: 20rem; */
 		/* zindex -1 */
 		z-index: -1;
 	}
 
 	/* .coreと.doughnutはpositionで同じ位置に表示してdoughnutをz-indexで後ろに表示 */
+
+	/* left_sideをwidth50%で左側にonline_dataをwidth50%で右側にdisplay flexで左右に分ける  */
+
 .core{
 	position: relative;
+	display: flex;
+
+}
+.left_side, .right_side {
+  flex: 1;
 }
 .doughnut{
 	position: absolute;
@@ -968,7 +980,6 @@ password: <input bind:value={PASSWORD} type="password" placeholder="password">
 	/* 縦横100% */
 	width: 100%;
 	height: 100%;
-
 }
 
 </style>
