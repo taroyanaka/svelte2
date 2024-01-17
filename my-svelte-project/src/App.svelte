@@ -198,8 +198,13 @@ const list_validation = (Ary) => {
 	}
 };
 
-
-	const init = (Ary) => {
+let tmp_ary=[1,2,3];
+	const init = (Ary, From_Online) => {
+		if(From_Online){
+			list = Ary;
+			return;
+		}
+		tmp_ary = Ary;
 		Ary.forEach(V=>{
 			list = [...list, new_list_obj(V)];
 		});
@@ -620,12 +625,15 @@ function delete_event(date){
 	let hoge = null;
 	const fetch_insert_link = async () => {
 		try {
+// listのcheckを全部falseにし、change_dateを現在時刻にする
+		const uncheck_list = list.map((item) => ({...item, check: false, check_date: new Date()}));
+
 		// listをlist_validation関数でチェック
-		list_validation(list);
-		DATA1 = JSON.stringify(list);
-		DATA2 = JSON.stringify(meta_data);
+		list_validation(uncheck_list);
+		// DATA1 = uncheck_list;
+		// DATA2 = meta_data;
 		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
-		const DATA_JSON_STR = JSON.stringify({data1: DATA1, data2: DATA2});
+		const DATA_JSON_STR = JSON.stringify({data1: uncheck_list, data2: meta_data});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
 		await response_handling(RESPONSE);
 		} catch (error) {ERROR_MESSAGE = error.message;}
@@ -747,6 +755,7 @@ function delete_event(date){
 		try {
 			await fetch_hello({});
 			await fetch_get_tags_for_autocomplete();	
+			// await init(JSON.parse(hello_fetch_data[0]['data_json_str']['data1']));
 		} catch (error) {
 			console.log(error);		
 		}
@@ -754,7 +763,9 @@ function delete_event(date){
 	afterUpdate(async () => {
 		try {
 			// await fetch_hello({});
-			await fetch_get_tags_for_autocomplete();	
+			// await fetch_get_tags_for_autocomplete();	
+			// await init(JSON.parse(hello_fetch_data[7][0]['data_json_str']['data1']));
+
 		} catch (error) {
 			console.log(error);		
 		}
@@ -763,12 +774,13 @@ function delete_event(date){
 
 
 
-// init(sample);
-init(sample2);
+init(sample);
+// init(sample2);
+
 </script>
 
 
-
+<div>{tmp_ary}</div>
 
 
 
@@ -807,6 +819,10 @@ init(sample2);
 	<!-- button -->
 	<button on:click={() => add_event()}>add_event</button>
 	<button on:click={() => show_event()}>show_event</button>
+<button on:click={() => init(
+	JSON.parse(hello_fetch_data[0]['data_json_str'])['data1'],
+	true
+	)}>init</button>
 	<!-- edit_modeのon/offのラジオ -->
 	edit_mode: 
 	<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
@@ -880,8 +896,11 @@ init(sample2);
 			</div>
 			<ul>
 			<li>
-			<span>data1: {JSON.parse(item.data_json_str).data1}</span>
-			<span>data2: {JSON.parse(item.data_json_str).data2}</span>
+			<!-- data1とdata2を一時的に表示用にJSON.stringifyする -->
+			<!-- <span>data1: {JSON.parse(item.data_json_str).data1}</span> -->
+			<span>data1: {JSON.stringify(JSON.parse(item.data_json_str).data1)}</span>
+			<!-- <span>data2: {JSON.parse(item.data_json_str).data2}</span> -->
+			<span>data2: {JSON.stringify(JSON.parse(item.data_json_str).data2)}</span>
 			<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
 			<!-- fetch_copy_insert_link 自分自身が所有するlinkの時はボタンを表示しない -->
 			{#if item.username !== NAME}
