@@ -12,6 +12,9 @@
 	} from 'chart.js';
 	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
 
+	// validator.jsのインポート
+	import { isURL } from 'validator';
+
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 	// listが更新されたらhtmlを更新する
 	$: {
@@ -22,6 +25,18 @@
 
 	let calendar_val = null;
 	let all_event = null;
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+		displayEventTime: false, // イベントの時刻を非表示にする
+    });
+    calendar.render();
+	calendar_val = calendar;
+});
+
+
+
 	// dataの初期値のサンプルデータ
 	let data = null;
 	// data = {
@@ -44,11 +59,26 @@
 	"Rumours: Fleetwood Mac",
 	"Machine Head: Deep Purple",
 	];
+let sample2 = [
+"Dark & Wild: BTS",
+"The Red Summer: Red Velvet",
+"WINGS: BTS",
+"Reboot: Wonder Girls",
+"Square Up: BLACKPINK",
+"HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS",
+"EXODUS: EXO",
+"Odd: SHINee",
+"Flight Log: Turbulence: GOT7",
+"Love Shot: EXO",
+];
 	let meta_data = {
 	"desc": "Best albums of all time of hard rock and heavy metal, 10",
 	};
-	// data_aにlist
+
+		// data_aにlist
 	// data_bにmeta_data
+
+
 	let test = "test";
 	let list = [];
 	let edit_mode = false;
@@ -91,11 +121,13 @@
 	const DOMAIN_NAME = 'http://localhost:8000/';
 
 
-	// #4D5360 灰色
+	// 白に近い灰色
+	// #D2D6D9
+	// #D2D6D9 灰色
 	// #F7464A 赤
 	const split_volume = (ary) => ary.map((value) => 10 / ary.length);
 	// listのcheckがtrueのindexのみ色を変える
-	const any_index_color_list = (ary, index=[], color_code="#F7464A") => ary.map((value, idx) => value['check'] ? color_code : "#4D5360");
+	const any_index_color_list = (ary, index=[], color_code="#F7464A") => ary.map((value, idx) => value['check'] ? color_code : "#D2D6D9");
 	const update_data = () => {
 		// sampleをdataと同じ形式に変換(labelsはsampleの一列目と二列目の結合,volumeは均等分割した値,)
 		data = {
@@ -135,8 +167,40 @@
 	// checkしたlistのindexの配列を返す関数
 	const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
 
-	const sample_init = () => {
-		sample.forEach(V=>{
+// StrをisURLでチェックしてtrueならそのまま返す関数
+const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
+// listのvalidationの関数
+// 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
+// {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
+const list_validation = (Ary) => {
+	try {
+	// Aryが配列でない場合はエラー
+	Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
+	Ary.forEach((V, I) => {
+		// idが整数でない場合はエラー
+		typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
+		// textが1文字以上でない場合はエラー
+		V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
+		// linkがURLでない場合はエラー
+		typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
+		// linkがURLでない場合はエラー
+		url_check(V.link);
+		// checkがBooleanでない場合はエラー
+		typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
+		// check_dateがDateでない場合はエラー
+		V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
+	});
+	// Aryが空の場合はエラー
+	Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
+	} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+	}
+};
+
+
+	const init = (Ary) => {
+		Ary.forEach(V=>{
 			list = [...list, new_list_obj(V)];
 		});
 	};
@@ -556,6 +620,10 @@ function delete_event(date){
 	let hoge = null;
 	const fetch_insert_link = async () => {
 		try {
+		// listをlist_validation関数でチェック
+		list_validation(list);
+		DATA1 = JSON.stringify(list);
+		DATA2 = JSON.stringify(meta_data);
 		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
 		const DATA_JSON_STR = JSON.stringify({data1: DATA1, data2: DATA2});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
@@ -563,6 +631,7 @@ function delete_event(date){
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
 	// copy insert(他のユーザーのlinkをコピーして自分のlinkとして保存する)
+	// copyするときはcheckを全部falseでchange_dateを現在時刻にする
 	const fetch_copy_insert_link = async (Other_User_DATA1, Other_User_DATA2) => {
 		try {
 		const DATA_JSON_STR = JSON.stringify({data1: Other_User_DATA1, data2: Other_User_DATA2});
@@ -693,30 +762,9 @@ function delete_event(date){
 
 
 
-	document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-		displayEventTime: false, // イベントの時刻を非表示にする
-		// クリックされた日付にイベントを追加
-        // dateClick: function(info) {
-        //     calendar.addEvent({
-        //         title: '新しいイベント',
-        //         start: info.dateStr,
-        //         allDay: true
-        //     });
-        // }
-    });
-
-    calendar.render();
-	calendar_val = calendar;
-});
-
-
-	sample_init();
-
-
+// init(sample);
+init(sample2);
 </script>
 
 
@@ -753,6 +801,7 @@ function delete_event(date){
 
 <div class="core">
 	<div class="left_side">
+<div>{sample2}</div>
 	<div id='calendar'></div>
 
 	<!-- button -->
@@ -981,6 +1030,8 @@ function delete_event(date){
 	width: 100%;
 	height: 100%;
 }
+/* hrefのテキストの色を緑色にする */
+/* a:link { color: green; } */
 
 </style>
 	
