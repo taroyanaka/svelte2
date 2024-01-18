@@ -92,10 +92,12 @@ let sample2 = [
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 	let hello_fetch_data = [];
 
-	let NAME = 'user1';
+	// let NAME = 'user1';
+	let NAME = 'user2';
 	let TEST_MODE = 'TEST_MODE';
 	// let TEST_MODE = 'PRODUCTION_MODE';
-	let PASSWORD = 'user_pass1';
+	// let PASSWORD = 'user_pass1';
+	let PASSWORD = 'user_pass2';
 	let DATA1 = 'data1';
 	let DATA2 = 'data2';
 	let COMMENT = 'comment1';
@@ -199,9 +201,17 @@ const list_validation = (Ary) => {
 };
 
 let tmp_ary=[1,2,3];
-	const init = (Ary, From_Online) => {
+	const init = (Ary, From_Online, User_Name) => {
+		console.log(NAME);
+		console.log(User_Name);
 		if(From_Online){
 			list = Ary;
+			console.log("NAME === User_Name", NAME === User_Name);
+			// console.log("uncheck_list", uncheck_list());
+
+			// NAMEとUser_Nameが一致する場合は何もせず、
+			// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
+			NAME === User_Name ? null : list = uncheck_list();
 			return;
 		}
 		tmp_ary = Ary;
@@ -620,20 +630,23 @@ function delete_event(date){
 		}
 	}
 	
+const uncheck_list = () => {
+	let res = list.map((item) => ({...item, check: false, check_date: new Date()}))
+	// console.log(res);
+	return res;
+};
 	// URLの配列の文字列から始まる場合はtrueを返す関数を1行で
 	// const is_include_WHITE_LIST_URL = (target_url_str, WHITE_LIST_URL_ARRAY) => WHITE_LIST_URL_ARRAY.some((WHITE_LIST_URL) => target_url_str.startsWith(WHITE_LIST_URL));
 	let hoge = null;
 	const fetch_insert_link = async () => {
 		try {
 // listのcheckを全部falseにし、change_dateを現在時刻にする
-		const uncheck_list = list.map((item) => ({...item, check: false, check_date: new Date()}));
-
+const check_mode = false;
+if(check_mode===true){list = uncheck_list};
 		// listをlist_validation関数でチェック
-		list_validation(uncheck_list);
-		// DATA1 = uncheck_list;
-		// DATA2 = meta_data;
+		list_validation(list);
 		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
-		const DATA_JSON_STR = JSON.stringify({data1: uncheck_list, data2: meta_data});
+		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
 		await response_handling(RESPONSE);
 		} catch (error) {ERROR_MESSAGE = error.message;}
@@ -819,10 +832,6 @@ init(sample);
 	<!-- button -->
 	<button on:click={() => add_event()}>add_event</button>
 	<button on:click={() => show_event()}>show_event</button>
-<button on:click={() => init(
-	JSON.parse(hello_fetch_data[0]['data_json_str'])['data1'],
-	true
-	)}>init</button>
 	<!-- edit_modeのon/offのラジオ -->
 	edit_mode: 
 	<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
@@ -835,10 +844,12 @@ init(sample);
 			<li class="list-group-item" style="background-color: {item.check ? 'gray' : ''}">
 				<span>{idx}</span>
 				<a href={item.link}>{item.text}</a>
+<span>{item.check}</span>
+<span>{item.check_date}</span>
 				<!-- edit_modeのon/offで表示を切り替える -->
 				{#if edit_mode}
 					<input type="text" value={item.text} on:input={(e) => item.text = e.target.value} />
-					<input type="url" value={item.link} on:input={(e) => item.link = e.target.value} />
+<input type="url" value={item.link} on:input={(e) => item.link = e.target.value} />
 					<button on:click={() => insert_list(idx)}>insert_list</button>
 					<button on:click={() => delete_list(idx)}>delete_list</button>
 				{/if}
@@ -868,7 +879,7 @@ init(sample);
 		<button on:click={fetch_insert_link} class="insert_link">insert_link</button>
 		<button on:click={() => fetch_hello({})}>CLEAR</button>
 		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
-		<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>
+		<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>		
 	</div>
 	{#each ALL_TAGS as item, index}
 	<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
@@ -898,7 +909,15 @@ init(sample);
 			<li>
 			<!-- data1とdata2を一時的に表示用にJSON.stringifyする -->
 			<!-- <span>data1: {JSON.parse(item.data_json_str).data1}</span> -->
-			<span>data1: {JSON.stringify(JSON.parse(item.data_json_str).data1)}</span>
+<span>data1: {JSON.stringify(JSON.parse(item.data_json_str).data1)}</span>
+<button on:click={() => init(
+	// JSON.parse(hello_fetch_data[0]['data_json_str'])['data1'],
+	JSON.parse(item.data_json_str)['data1'],
+	true,
+	// username
+	item['username'],
+	)}>init</button>
+
 			<!-- <span>data2: {JSON.parse(item.data_json_str).data2}</span> -->
 			<span>data2: {JSON.stringify(JSON.parse(item.data_json_str).data2)}</span>
 			<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
