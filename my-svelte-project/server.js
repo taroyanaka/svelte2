@@ -1142,3 +1142,20 @@ app.post('/get_collect_value_for_test', (req, res) => {
     }
 });
 
+// linkのidとuser_idを一致した場合はupdateするエンドポイント
+app.post('/update_link', (req, res) => {
+    try {
+        const user = get_user_with_permission(req);
+        user || user.writable ? null : (()=>{throw new Error('権限がありません')})();
+        const result = db.prepare(`UPDATE links SET link = ?, data_json_str = ?, updated_at = ? WHERE id = ? AND user_id = ?`).run(req.body.link, req.body.data_json_str, now(), req.body.id, user.user_id);
+        result ? null : (()=>{throw new Error('原因不明のupdateエラー')})();
+        res.status(200)
+            .json({result: 'success'
+                ,status: 200
+                // ,message: result.lastInsertRowid
+            });
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({status: 400, result: 'fail', message: error.message});
+    }
+});

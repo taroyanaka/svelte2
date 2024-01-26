@@ -1,4 +1,31 @@
 <script>
+
+
+// linkのidとuser_idを一致した場合はupdateで、一致しない場合はinsertになる関数
+const insert_or_update_link = async (Link_id) => {
+	try {
+		// listをlist_validation関数でチェック
+		list_validation(list);
+		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
+		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
+		// hello_fetch_dataからLink_idとuser_idの一致を確認する関数
+		const check_link_id_and_user_id = (Link_id) => {
+			const result = hello_fetch_data.some((item) => item.id === Link_id && item.user_id === USER_ID);
+			return result;
+		};
+		// Link_idとuser_idが一致するものがある場合はupdateする
+		if(check_link_id_and_user_id(Link_id)){
+			RESPONSE = await (await fetch(DOMAIN_NAME+'update_link', get_POST_object({ name: NAME, password: PASSWORD, link_id: Link_id, data_json_str: DATA_JSON_STR }))).json();
+			await response_handling(RESPONSE);
+			return;
+		}
+		// Link_idとuser_idが一致するものがない場合はinsertする
+		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
+		await response_handling(RESPONSE);
+	} catch (error) {ERROR_MESSAGE = error.message;}
+};
+
+
 // let dev_mode = true;
 let dev_mode = false;
 
