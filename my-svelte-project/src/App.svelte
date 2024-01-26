@@ -166,7 +166,6 @@ const check_mode = false;
 if(check_mode===true){list = uncheck_list};
 		// listをlist_validation関数でチェック
 		list_validation(list);
-		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
 		await response_handling(RESPONSE);
@@ -372,11 +371,11 @@ const check_fn = (idx) => {
 	};
 };
 // 最大のid+1(listが空の時は0)
-const new_id = () => list.length ? Math.max(...list.map((item) => item.id)) + 1 : 0;
-const new_list_obj = (Text) => ({ id: new_id(), text: Text, link: 'https://google.com', check: false, check_date: new Date() });
+// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
+const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: new Date() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => list = [...list, new_list_obj];
-const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj(), ...list.slice(idx)];
+const add_list = () => list = [...list, new_list_obj("foo_bar", list.length)];
+const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
 const delete_list = (idx) => list = [...list.slice(0, idx), ...list.slice(idx + 1)];
 // checkしたlistのindexの配列を返す関数
 const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
@@ -413,22 +412,27 @@ const list_validation = (Ary) => {
 };
 
 
-const init = (Ary, From_Online, User_Name) => {
-	console.log(NAME);
-	console.log(User_Name);
+const init = (item, From_Online, User_Name) => {
+	list = JSON.parse(item.data_json_str)['data1'];
+	meta_data.id = item.id ? item.id : null;
+	meta_data.desc = 'foo_bar_buz';
+
 	if(From_Online){
-		list = Ary;
+		// JSON.parse(item.data_json_str)['data1'];
 		console.log("NAME === User_Name", NAME === User_Name);
 		// console.log("uncheck_list", uncheck_list());
-
 		// NAMEとUser_Nameが一致する場合は何もせず、
 		// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
 		NAME === User_Name ? null : list = uncheck_list();
 		return;
 	}
-	tmp_ary = Ary;
-	Ary.forEach(V=>{
-		list = [...list, new_list_obj(V)];
+	list.forEach((V, IDX)=>{
+		list = [...list, new_list_obj(V, IDX)];
+	});
+};
+const init_from_sample = (sample_data) => {
+	sample_data.forEach((V, IDX)=>{
+		list = [...list, new_list_obj(V, IDX)];
 	});
 };
 
@@ -494,7 +498,7 @@ afterUpdate(async () => {
 
 
 
-init(sample);
+init_from_sample(sample);
 all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 // init(sample2);
 
@@ -612,7 +616,10 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 		<textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea>
 		DATA2:
 		<textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea>
-		<button on:click={fetch_insert_link} class="insert_link">insert_link</button>
+
+<button on:click={fetch_insert_link} class="insert_link">insert_link</button>
+<button on:click={() => insert_or_update_link(meta_data.id)} class="insert_or_update_link">insert_or_update_link</button>
+
 		<button on:click={() => fetch_hello({})}>CLEAR</button>
 		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
 		<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>		
@@ -648,7 +655,7 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 <span>data1: {JSON.stringify(JSON.parse(item.data_json_str).data1)}</span>
 <button on:click={() => init(
 	// JSON.parse(hello_fetch_data[0]['data_json_str'])['data1'],
-	JSON.parse(item.data_json_str)['data1'],
+	item,
 	true,
 	// username
 	item['username'],
