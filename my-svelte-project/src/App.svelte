@@ -1,7 +1,9 @@
 <script>
 
 
-// linkのidとuser_idを一致した場合はupdateで、一致しない場合はinsertになる関数
+// linkのidとusernameが一致するものがある場合はupdateする
+// 一致した場合はupdateで、一致しない場合はinsertになる関数
+// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
 const insert_or_update_link = async (Link_id) => {
 	try {
 		// listをlist_validation関数でチェック
@@ -10,7 +12,7 @@ const insert_or_update_link = async (Link_id) => {
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
 		// hello_fetch_dataからLink_idとuser_idの一致を確認する関数
 		const check_link_id_and_user_id = (Link_id) => {
-			const result = hello_fetch_data.some((item) => item.id === Link_id && item.user_id === USER_ID);
+			const result = hello_fetch_data.some((item) => item.id === Link_id && item.username === NAME);
 			return result;
 		};
 		// Link_idとuser_idが一致するものがある場合はupdateする
