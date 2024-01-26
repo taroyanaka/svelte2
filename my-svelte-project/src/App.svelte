@@ -1,6 +1,5 @@
 <script>
 
-
 // linkのidとusernameが一致するものがある場合はupdateする
 // 一致した場合はupdateで、一致しない場合はinsertになる関数
 // server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
@@ -12,7 +11,9 @@ const insert_or_update_link = async (Link_id) => {
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
 		// hello_fetch_dataからLink_idとuser_idの一致を確認する関数
 		const check_link_id_and_user_id = (Link_id) => {
-			const result = hello_fetch_data.some((item) => item.id === Link_id && item.username === NAME);
+			// Link_idがnullの場合はfalseを返す(insertする)
+			if(Link_id === null) return false;
+			result = hello_fetch_data.some((item) => item.id === Link_id && item.username === NAME);
 			return result;
 		};
 		// Link_idとuser_idが一致するものがある場合はupdateする
@@ -48,7 +49,8 @@ let data = null;
 let sample = ["High Voltage: AC/DC","Led Zeppelin IV: Led Zeppelin","Appetite for Destruction: Guns N' Roses","Master of Puppets: Metallica","Back in Black: AC/DC","Paranoid: Black Sabbath","The Dark Side of the Moon: Pink Floyd","Destroyer: KISS","Rumours: Fleetwood Mac","Machine Head: Deep Purple",];
 let sample2 = ["Dark & Wild: BTS","The Red Summer: Red Velvet","WINGS: BTS","Reboot: Wonder Girls","Square Up: BLACKPINK","HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS","EXODUS: EXO","Odd: SHINee","Flight Log: Turbulence: GOT7","Love Shot: EXO",];
 let meta_data = {
-"desc": "Best albums of all time of hard rock and heavy metal, 10",
+id: null,
+desc: "Best albums of all time of hard rock and heavy metal, 10",
 };
 // data_aにlist
 // data_bにmeta_data
@@ -533,7 +535,7 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 <div class="core">
 	<div class="left_side">
 
-<div>
+<!-- <div>
 {#each all_list_and_meta_data as item, index}
 	<div>desc: {item['Meta_Data']['desc']}</div>
 	<br />
@@ -541,20 +543,25 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 		<div>{item2['text']}</div>
 	{/each}
 {/each}
-</div>
+</div> -->
 
 
-{#if dev_mode === false}
+<!-- {#if dev_mode === false}
 <div>{sample2}</div>
-{/if}
+{/if} -->
 
-{#if dev_mode === false}
+<!-- {#if dev_mode === false}
 	<div id='calendar'></div>
-{/if}
+{/if} -->
 
-	<!-- <div>{tmp_ary}</div> -->
 
-	<!-- button -->
+
+
+
+
+
+
+<!-- button -->
 	<button on:click={() => add_event()}>add_event</button>
 	<button on:click={() => show_event()}>show_event</button>
 	<!-- edit_modeのon/offのラジオ -->
@@ -562,7 +569,8 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 	<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
 	<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
 	<!-- information tag -->
-	<div>{meta_data.desc}</div>
+	<div>id: {meta_data.id}</div>
+	<div>desc: {meta_data.desc}</div>
 	<ul>
 		<!-- eachでlist -->
 		{#each list as item, idx}
@@ -644,7 +652,7 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 	true,
 	// username
 	item['username'],
-	)}>init</button>
+	)}>init_from_online</button>
 
 			<!-- <span>data2: {JSON.parse(item.data_json_str).data2}</span> -->
 			<span>data2: {JSON.stringify(JSON.parse(item.data_json_str).data2)}</span>
@@ -701,21 +709,18 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 
 
 
-{#if dev_mode === false}
+<!-- {#if dev_mode === false}
 <div class="doughnut">
-	<!-- dataが存在するときだけ表示する -->
 	{#if data}
 		<Doughnut {data} options={{ responsive: true, 
 		plugins: {
 		legend: {
 			display: false,
-			// 'chartArea'が期待する位置に表示されないため、display: falseにしている
-			// position: 'chartArea',
 			position: 'top',
 		}, }}} />
 	{/if}
 	</div>
-{/if}
+{/if} -->
 
 
 
