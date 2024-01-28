@@ -1,3 +1,19 @@
+// dataの初期値のサンプルデータ
+let data = null;
+// data = {
+//   labels: ['Red', 'Green', 'Yellow', 'Grey', 'Dark Grey'],
+//   datasets: [
+//     {
+//       data: [300, 50, 100, 40, 120],
+//     },
+//   ],
+// };
+
+
+
+
+
+
 // check_fnをcalendar用に更新
 // idを指定してcheckを切り替え
 const check_fn = (idx) => {

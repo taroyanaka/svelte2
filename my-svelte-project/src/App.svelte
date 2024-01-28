@@ -24,22 +24,9 @@ const insert_or_update_link = async (Link_id) => {
 // let dev_mode = true;
 let dev_mode = false;
 
-let tmp_ary=[1,2,3];
 // 全てdata_aとdata_bを入れるlist
 let all_list_and_meta_data = [];
 
-// dataの初期値のサンプルデータ
-let data = null;
-// data = {
-//   labels: ['Red', 'Green', 'Yellow', 'Grey', 'Dark Grey'],
-//   datasets: [
-//     {
-//       data: [300, 50, 100, 40, 120],
-//     },
-//   ],
-// };
-let sample = ["High Voltage: AC/DC","Led Zeppelin IV: Led Zeppelin","Appetite for Destruction: Guns N' Roses","Master of Puppets: Metallica","Back in Black: AC/DC","Paranoid: Black Sabbath","The Dark Side of the Moon: Pink Floyd","Destroyer: KISS","Rumours: Fleetwood Mac","Machine Head: Deep Purple",];
-let sample2 = ["Dark & Wild: BTS","The Red Summer: Red Velvet","WINGS: BTS","Reboot: Wonder Girls","Square Up: BLACKPINK","HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS","EXODUS: EXO","Odd: SHINee","Flight Log: Turbulence: GOT7","Love Shot: EXO",];
 let meta_data = {
 desc: "Best albums of all time of hard rock and heavy metal, 10",
 };
@@ -47,7 +34,6 @@ desc: "Best albums of all time of hard rock and heavy metal, 10",
 // data_bにmeta_data
 
 
-let test = "test";
 let list = [];
 let edit_mode = false;
 let new_text = 'text';
