@@ -6,9 +6,6 @@ let data_id_from_online = null;
 const insert_or_update_link = async (Link_id) => {
 	try {
 		console.log(Link_id);
-		// listをlist_validation関数でチェック
-		// list_validation(list);
-		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
 		console.log(DATA_JSON_STR);
 		// Link_idとuser_idが一致するものがある場合はupdateする
@@ -19,9 +16,7 @@ const insert_or_update_link = async (Link_id) => {
 			return;
 		}
 		console.log('insert');
-		// Link_idとuser_idが一致するものがない場合はinsertする
 		await fetch_insert_link();
-
 	} catch (error) {ERROR_MESSAGE = error.message;}
 };
 
@@ -94,6 +89,7 @@ const DOMAIN_NAME = 'http://localhost:8000/';
 // コードの見通しを良くするために(エディタのFold機能のために)、all_fetch_fnとall_fetchにより、関数を全てまとめてオブジェクトにして返す
 // 1.all_fetch_fnを定義して、関数を全てまとめる 2.all_fetch_fn()を実行して全ての関数が含まれたオブジェクトを取得 3.all_fetchの全ての関数を取得
 const all_fetch_fn = ()  => { 
+
 	const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='id', REQ_TAG_PARAM, USER_PARAM}) => {
 		// console.log(ORDER_BY_COLUMN_PARAM);
 		try {
@@ -146,20 +142,28 @@ const all_fetch_fn = ()  => {
 			(()=>{throw new Error(error.message)})();
 		}
 	}
-	
-const uncheck_list = () => {
-	let res = list.map((item) => ({...item, check: false, check_date: new Date()}))
-	// console.log(res);
-	return res;
-};
+
+	const uncheck_list = () => {
+		let res = list.map((item) => ({...item, check: false, check_date: new Date()}))
+		// console.log(res);
+		return res;
+	};
 	// URLの配列の文字列から始まる場合はtrueを返す関数を1行で
 	// const is_include_WHITE_LIST_URL = (target_url_str, WHITE_LIST_URL_ARRAY) => WHITE_LIST_URL_ARRAY.some((WHITE_LIST_URL) => target_url_str.startsWith(WHITE_LIST_URL));
 	let hoge = null;
-	const fetch_insert_link = async () => {
+	const fetch_insert_link = async (sample_data) => {
 		try {
-// listのcheckを全部falseにし、change_dateを現在時刻にする
-const check_mode = false;
-if(check_mode===true){list = uncheck_list};
+		// sample_dataがある場合はsample_dataをlistに代入
+			if(sample_data){
+				const sample_data_json_str = sample_data === "sample1" ?
+					JSON.parse(`{"data1":[{"id":0,"text":"High Voltage: AC/DC","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.122Z"},{"id":1,"text":"Led Zeppelin IV: Led Zeppelin","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.947Z"},{"id":2,"text":"Appetite for Destruction: Guns N' Roses","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:54.374Z"},{"id":3,"text":"Master of Puppets: Metallica","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":4,"text":"Back in Black: AC/DC","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":5,"text":"Paranoid: Black Sabbath","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":6,"text":"The Dark Side of the Moon: Pink Floyd","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":7,"text":"Destroyer: KISS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":8,"text":"Rumours: Fleetwood Mac","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":9,"text":"Machine Head: Deep Purple","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}`) : 
+					JSON.parse(`{"data1":[{"id":0,"text":"Dark & Wild: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":1,"text":"The Red Summer: Red Velvet","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":2,"text":"WINGS: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":3,"text":"Reboot: Wonder Girls","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":4,"text":"Square Up: BLACKPINK","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":5,"text":"HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":6,"text":"EXODUS: EXO","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":7,"text":"Odd: SHINee","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":8,"text":"Flight Log: Turbulence: GOT7","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":9,"text":"Love Shot: EXO","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}`) ;
+				list = sample_data_json_str['data1'];
+				meta_data = sample_data_json_str['data2'];
+			}
+		// listのcheckを全部falseにし、change_dateを現在時刻にする
+		const check_mode = false;
+		if(check_mode===true){list = uncheck_list};
 		// listをlist_validation関数でチェック
 		list_validation(list);
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
@@ -340,7 +344,7 @@ const update_data = () => {
 const check_fn = (idx) => {
 	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
 	if(list[idx]['check'] === true){
-		delete_event(list[idx]['check_date']);
+		// delete_event(list[idx]['check_date']);
 		list[idx]['check'] = false;
 		list[idx]['check_date'] = new Date();
 		return;
@@ -348,7 +352,7 @@ const check_fn = (idx) => {
 
 	if(list[idx]['check'] === false){
 		list[idx]['check_date'] = new Date();
-		add_event(list[idx]['text'], list[idx]['check_date']);
+		// add_event(list[idx]['text'], list[idx]['check_date']);
 		list[idx]['check'] = true;
 	};
 };
@@ -413,11 +417,6 @@ const init = (item, From_Online, User_Name) => {
 		list = [...list, new_list_obj(V, IDX)];
 	});
 };
-const init_from_sample = (sample_data) => {
-	sample_data.forEach((V, IDX)=>{
-		list = [...list, new_list_obj(V, IDX)];
-	});
-};
 
 
 // onMount(fetch_hello({}));
@@ -443,8 +442,6 @@ afterUpdate(async () => {
 
 
 
-init_from_sample(sample);
-// init(sample2);
 
 </script>
 
@@ -460,6 +457,10 @@ init_from_sample(sample);
 	<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
 	<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
 	<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
+
+	<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
+	<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
+
 	<div>desc: {meta_data.desc}</div>
 	<ul>
 		<!-- eachでlist -->

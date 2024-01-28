@@ -1,3 +1,29 @@
+// check_fnをcalendar用に更新
+// idを指定してcheckを切り替え
+const check_fn = (idx) => {
+	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
+	if(list[idx]['check'] === true){
+		// delete_event(list[idx]['check_date']);
+		list[idx]['check'] = false;
+		list[idx]['check_date'] = new Date();
+		return;
+	};
+
+	if(list[idx]['check'] === false){
+		list[idx]['check_date'] = new Date();
+		// add_event(list[idx]['text'], list[idx]['check_date']);
+		list[idx]['check'] = true;
+	};
+};
+// check_fnをcalendar用に更新
+
+
+
+
+
+
+
+
 let calendar_val = null;
 let all_event = null;
 document.addEventListener('DOMContentLoaded', function() {
