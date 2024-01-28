@@ -1,4 +1,5 @@
 <script>
+
 let data_id_from_online = null;
 // linkのidとusernameが一致するものがある場合はupdateする
 // 一致した場合はupdateで、一致しない場合はinsertになる関数
@@ -301,31 +302,12 @@ import { isURL } from 'validator';
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
 $: {
 console.log(list, "listが更新されたらhtmlを更新する");
-update_data();
+
+// update_dataはdougnutのdataを更新する関数
+// update_data();
 }
 
 
-
-// 白に近い灰色
-// #D2D6D9
-// #D2D6D9 灰色
-// #F7464A 赤
-const split_volume = (ary) => ary.map((value) => 10 / ary.length);
-// listのcheckがtrueのindexのみ色を変える
-const any_index_color_list = (ary, index=[], color_code="#F7464A") => ary.map((value, idx) => value['check'] ? color_code : "#D2D6D9");
-const update_data = () => {
-	// sampleをdataと同じ形式に変換(labelsはsampleの一列目と二列目の結合,volumeは均等分割した値,)
-	data = {
-		// labels: list.map((value) => value['link'] + ": " + value['text']),
-		labels: list.map((value) => value['text']),
-		datasets: [
-		{
-			data: split_volume(list),
-			backgroundColor: any_index_color_list(list, checked_list_index(), "#F7464A"),
-		},
-		],
-	};
-}
 // idを指定してcheckを切り替え
 const check_fn = (idx) => {
 	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
@@ -481,10 +463,9 @@ afterUpdate(async () => {
 	name: <input bind:value={NAME} type="text" placeholder="name">
 	password: <input bind:value={PASSWORD} type="password" placeholder="password">
 	<div>
-		DATA1:
-		<textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea>
-		DATA2:
-		<textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea>
+
+<!-- DATA1: <textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea> -->
+<!-- DATA2: <textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea> -->
 
 <button on:click={fetch_insert_link} class="insert_link">insert_link</button>
 
