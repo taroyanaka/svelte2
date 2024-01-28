@@ -1,26 +1,6 @@
 <script>
 
 let data_id_from_online = null;
-// linkのidとusernameが一致するものがある場合はupdateする
-// 一致した場合はupdateで、一致しない場合はinsertになる関数
-// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
-const insert_or_update_link = async (Link_id) => {
-	try {
-		console.log(Link_id);
-		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
-		console.log(DATA_JSON_STR);
-		// Link_idとuser_idが一致するものがある場合はupdateする
-		if(Link_id !== undefined  && Link_id !== null){
-			console.log('update');
-			RESPONSE = await (await fetch(DOMAIN_NAME+'update_link', get_POST_object({ name: NAME, password: PASSWORD, link_id: Link_id, data_json_str: DATA_JSON_STR }))).json();
-			await response_handling(RESPONSE);
-			return;
-		}
-		console.log('insert');
-		await fetch_insert_link();
-	} catch (error) {ERROR_MESSAGE = error.message;}
-};
-
 
 // let dev_mode = true;
 let dev_mode = false;
@@ -75,7 +55,28 @@ const DOMAIN_NAME = 'http://localhost:8000/';
 
 // コードの見通しを良くするために(エディタのFold機能のために)、all_fetch_fnとall_fetchにより、関数を全てまとめてオブジェクトにして返す
 // 1.all_fetch_fnを定義して、関数を全てまとめる 2.all_fetch_fn()を実行して全ての関数が含まれたオブジェクトを取得 3.all_fetchの全ての関数を取得
-const all_fetch_fn = ()  => { 
+const all_fetch_fn = ()  => {
+	// linkのidとusernameが一致するものがある場合はupdateする
+	// 一致した場合はupdateで、一致しない場合はinsertになる関数
+	// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
+	const insert_or_update_link = async (Link_id) => {
+		try {
+			console.log(Link_id);
+			const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
+			console.log(DATA_JSON_STR);
+			// Link_idとuser_idが一致するものがある場合はupdateする
+			if(Link_id !== undefined  && Link_id !== null){
+				console.log('update');
+				console.log(list);
+				RESPONSE = await (await fetch(DOMAIN_NAME+'update_link', get_POST_object({ name: NAME, password: PASSWORD, link_id: Link_id, data_json_str: DATA_JSON_STR }))).json();
+				await response_handling(RESPONSE);
+				return;
+			}
+			console.log('insert');
+			await fetch_insert_link();
+		} catch (error) {ERROR_MESSAGE = error.message;}
+	};
+
 
 	const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='id', REQ_TAG_PARAM, USER_PARAM}) => {
 		// console.log(ORDER_BY_COLUMN_PARAM);
@@ -273,6 +274,7 @@ const all_fetch_fn = ()  => {
 
 	// returnで全ての関数が含まれたオブジェクトを返す
 	return {
+		insert_or_update_link,
 		fetch_hello,
 		fetch_insert_link,
 		fetch_delete_link,
@@ -294,7 +296,7 @@ const all_fetch_fn = ()  => {
 
 };
 const all_fetch = all_fetch_fn();
-const {fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch;
+const {insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch;
 
 import { onMount } from 'svelte';
 import { afterUpdate } from 'svelte';
@@ -323,6 +325,12 @@ const check_fn = (idx) => {
 		// add_event(list[idx]['text'], list[idx]['check_date']);
 		list[idx]['check'] = true;
 	};
+	// data_id_from_onlineがnullでなければ
+	if(data_id_from_online !== null){
+		console.log("data_id_from_online", data_id_from_online);
+		insert_or_update_link(data_id_from_online);
+	}
+
 };
 // 最大のid+1(listが空の時は0)
 // const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
@@ -445,7 +453,7 @@ afterUpdate(async () => {
 					<button on:click={() => insert_list(idx)}>insert_list</button>
 					<button on:click={() => delete_list(idx)}>delete_list</button>
 				{/if}
-				<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
+<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
 			</li>
 		{/each}
 	</ul>
@@ -467,7 +475,7 @@ afterUpdate(async () => {
 <!-- DATA1: <textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea> -->
 <!-- DATA2: <textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea> -->
 
-<button on:click={fetch_insert_link} class="insert_link">insert_link</button>
+<!-- <button on:click={fetch_insert_link} class="insert_link">insert_link</button> -->
 
 		<button on:click={() => fetch_hello({})}>CLEAR</button>
 		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
