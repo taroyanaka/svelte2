@@ -1,30 +1,27 @@
 <script>
-
+let data_id_from_online = null;
 // linkのidとusernameが一致するものがある場合はupdateする
 // 一致した場合はupdateで、一致しない場合はinsertになる関数
 // server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
 const insert_or_update_link = async (Link_id) => {
 	try {
+		console.log(Link_id);
 		// listをlist_validation関数でチェック
-		list_validation(list);
+		// list_validation(list);
 		// RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, link: LINK }))).json();
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
-		// hello_fetch_dataからLink_idとuser_idの一致を確認する関数
-		const check_link_id_and_user_id = (Link_id) => {
-			// Link_idがnullの場合はfalseを返す(insertする)
-			if(Link_id === null) return false;
-			result = hello_fetch_data.some((item) => item.id === Link_id && item.username === NAME);
-			return result;
-		};
+		console.log(DATA_JSON_STR);
 		// Link_idとuser_idが一致するものがある場合はupdateする
-		if(check_link_id_and_user_id(Link_id)){
+		if(Link_id !== undefined  && Link_id !== null){
+			console.log('update');
 			RESPONSE = await (await fetch(DOMAIN_NAME+'update_link', get_POST_object({ name: NAME, password: PASSWORD, link_id: Link_id, data_json_str: DATA_JSON_STR }))).json();
 			await response_handling(RESPONSE);
 			return;
 		}
+		console.log('insert');
 		// Link_idとuser_idが一致するものがない場合はinsertする
-		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
-		await response_handling(RESPONSE);
+		await fetch_insert_link();
+
 	} catch (error) {ERROR_MESSAGE = error.message;}
 };
 
@@ -49,7 +46,6 @@ let data = null;
 let sample = ["High Voltage: AC/DC","Led Zeppelin IV: Led Zeppelin","Appetite for Destruction: Guns N' Roses","Master of Puppets: Metallica","Back in Black: AC/DC","Paranoid: Black Sabbath","The Dark Side of the Moon: Pink Floyd","Destroyer: KISS","Rumours: Fleetwood Mac","Machine Head: Deep Purple",];
 let sample2 = ["Dark & Wild: BTS","The Red Summer: Red Velvet","WINGS: BTS","Reboot: Wonder Girls","Square Up: BLACKPINK","HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS","EXODUS: EXO","Odd: SHINee","Flight Log: Turbulence: GOT7","Love Shot: EXO",];
 let meta_data = {
-id: null,
 desc: "Best albums of all time of hard rock and heavy metal, 10",
 };
 // data_aにlist
@@ -311,9 +307,6 @@ const {fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_d
 
 import { onMount } from 'svelte';
 import { afterUpdate } from 'svelte';
-import { Doughnut } from 'svelte-chartjs';
-import {Chart as ChartJS,Title,Tooltip,Legend,ArcElement,CategoryScale,	} from 'chart.js';
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
 import { isURL } from 'validator';
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
 $: {
@@ -321,17 +314,6 @@ console.log(list, "listが更新されたらhtmlを更新する");
 update_data();
 }
 
-let calendar_val = null;
-let all_event = null;
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-		displayEventTime: false, // イベントの時刻を非表示にする
-    });
-    calendar.render();
-	calendar_val = calendar;
-});
 
 
 // 白に近い灰色
@@ -414,7 +396,8 @@ const list_validation = (Ary) => {
 
 const init = (item, From_Online, User_Name) => {
 	list = JSON.parse(item.data_json_str)['data1'];
-	meta_data.id = item.id ? item.id : null;
+
+	data_id_from_online = item.id;
 	meta_data.desc = 'foo_bar_buz';
 
 	if(From_Online){
@@ -436,44 +419,6 @@ const init_from_sample = (sample_data) => {
 	});
 };
 
-// イベント表示
-function show_event(){
-	    // イベントを一括で取り出す
-	var events = calendar_val.getEvents();
-    events.forEach(function(event) {
-        // console.log('Title: ' + event.title + ', Start: ' + event.start);
-        console.log({"event": event, "event.title": event.title, "event.start": event.start});
-    });
-	all_event = events;
-}
-function add_event(Title="+", Date){
-	// let date = new Date();
-	// plus_day ? date.setDate(date.getDate() + plus_day) : null;
-	calendar_val.addEvent({
-		title: Title,
-		allDay: false,
-		start: Date,
-	});
-	show_event();
-}
-
-// 
-function delete_event(date){
-    var events = calendar_val.getEvents();
-    events.forEach(function(event) {
-        if(event.start.getFullYear() === date.getFullYear() &&
-           event.start.getMonth() === date.getMonth() &&
-           event.start.getDate() === date.getDate() 
-			//    秒まで一致しているか
-		   &&
-		   event.start.getHours() === date.getHours() &&
-		   event.start.getMinutes() === date.getMinutes() &&
-		   event.start.getSeconds() === date.getSeconds()
-		){
-			event.remove();
-        }
-    });
-}	
 
 // onMount(fetch_hello({}));
 onMount(async () => {
@@ -499,7 +444,6 @@ afterUpdate(async () => {
 
 
 init_from_sample(sample);
-all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 // init(sample2);
 
 </script>
@@ -507,73 +451,15 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <div class="core">
 	<div class="left_side">
-
-<!-- <div>
-{#each all_list_and_meta_data as item, index}
-	<div>desc: {item['Meta_Data']['desc']}</div>
-	<br />
-	{#each item['List'] as item2, index2}
-		<div>{item2['text']}</div>
-	{/each}
-{/each}
-</div> -->
-
-
-<!-- {#if dev_mode === false}
-<div>{sample2}</div>
-{/if} -->
-
-<!-- {#if dev_mode === false}
-	<div id='calendar'></div>
-{/if} -->
-
-
-
-
-
-
-
-
+		{data_id_from_online}
 <!-- button -->
-	<button on:click={() => add_event()}>add_event</button>
-	<button on:click={() => show_event()}>show_event</button>
 	<!-- edit_modeのon/offのラジオ -->
 	edit_mode: 
 	<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
 	<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
-	<!-- information tag -->
-	<div>id: {meta_data.id}</div>
+	<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
 	<div>desc: {meta_data.desc}</div>
 	<ul>
 		<!-- eachでlist -->
@@ -597,11 +483,7 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 	<input type="text" value={new_text} on:input={(e) => new_text = e.target.value} />
 	<input type="url" value={new_link} on:input={(e) => new_link = e.target.value} />
 	<button on:click={() => add_list()}>add</button>
-	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
-	<span>{all_event}</span>
-	<span>{calendar_val}</span>
-	<!-- show_eventのボタン -->
-	<button on:click={show_event}>show_event</button>
+
 	</div>
 
 
@@ -618,7 +500,6 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 		<textarea bind:value={DATA2} placeholder="DATA2" class="link"></textarea>
 
 <button on:click={fetch_insert_link} class="insert_link">insert_link</button>
-<button on:click={() => insert_or_update_link(meta_data.id)} class="insert_or_update_link">insert_or_update_link</button>
 
 		<button on:click={() => fetch_hello({})}>CLEAR</button>
 		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
@@ -647,6 +528,7 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 					{/each}
 				</datalist>
 				<button on:click={fetch_insert_tag(item.id)}>fetch_insert_tag</button>
+				{item.id}
 			</div>
 			<ul>
 			<li>
@@ -660,7 +542,7 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 	// username
 	item['username'],
 	)}>init_from_online</button>
-
+{item.id}
 			<!-- <span>data2: {JSON.parse(item.data_json_str).data2}</span> -->
 			<span>data2: {JSON.stringify(JSON.parse(item.data_json_str).data2)}</span>
 			<button on:click={fetch_delete_link(item.id)}>fetch_delete_link</button>
@@ -716,19 +598,6 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 
 
 
-<!-- {#if dev_mode === false}
-<div class="doughnut">
-	{#if data}
-		<Doughnut {data} options={{ responsive: true, 
-		plugins: {
-		legend: {
-			display: false,
-			position: 'top',
-		}, }}} />
-	{/if}
-	</div>
-{/if} -->
-
 
 
 
@@ -783,12 +652,6 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 		width: 2rem;
 		height: 2rem;
 	}
-	#calendar{
-		width: 100%;
-		/* height: 20rem; */
-		/* zindex -1 */
-		z-index: -1;
-	}
 
 	/* .coreと.doughnutはpositionで同じ位置に表示してdoughnutをz-indexで後ろに表示 */
 
@@ -802,26 +665,9 @@ all_list_and_meta_data = [{List: list, Meta_Data: meta_data},];
 .left_side, .right_side {
   flex: 1;
 }
-.doughnut{
-	position: absolute;
-	top: 0;
-	left: 0;
-	z-index: -2;
-	/* 縦横100% */
-	width: 100%;
-	height: 100%;
-}
 /* hrefのテキストの色を緑色にする */
 /* a:link { color: green; } */
 
 </style>
 	
 	
-	
-	<!-- サービス案:オタク大学(仮 オタク大学.........)  -->
-	<!-- 様々なカテゴリの履修科目(to-do list形式?)で表示 -->
-	<!-- インプットした進捗度合いを他ユーザーに共有できる -->
-	<!-- 例:ハードロックの名盤をアルバム名:グループ名:概要の形式で10枚 等 -->
-	<!-- 履修科目はユーザー同士で作ったりできる(gptで生成も可) -->
-	<!-- ゲージチャート(ドーナツチャート)とか入れたり進捗の度合いを明示的にしたい -->
-	<!-- https://www.chartjs.org/samples/2.6.0/charts/doughnut.html -->

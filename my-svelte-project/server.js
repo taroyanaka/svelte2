@@ -630,15 +630,21 @@ app.post('/delete_link', (req, res) => {
         db.prepare(`SELECT * FROM likes WHERE link_id = ? AND user_id = ?`).get(req.body.id, user.user_id) ? db.prepare(`DELETE FROM likes WHERE link_id = ? AND user_id = ?`).run(req.body.id, user.user_id) : null;
         db.prepare(`SELECT * FROM comment_replies LEFT JOIN comments ON comment_replies.comment_id = comments.id WHERE comments.link_id = ? AND comment_replies.user_id = ?`).get(req.body.id, user.user_id) ? db.prepare(`DELETE FROM comment_replies LEFT JOIN comments ON comment_replies.comment_id = comments.id WHERE comments.link_id = ? AND comment_replies.user_id = ?`).run(req.body.id, user.user_id) : null;
         db.prepare(`SELECT * FROM comments WHERE link_id = ? AND user_id = ?`).get(req.body.id, user.user_id) ? db.prepare(`DELETE FROM comments WHERE link_id = ? AND user_id = ?`).run(req.body.id, user.user_id) : null;
+        db.prepare(`SELECT * FROM links_tags WHERE link_id = ?`).all(req.body.id).length ? db.prepare(`DELETE FROM links_tags WHERE link_id = ?`).run(req.body.id) : null;
         // linkに紐づくlinks_tagsを削除し、tagが他のlinkに紐づいていなければ、tagも削除する
         const tags = db.prepare(`SELECT * FROM links_tags WHERE link_id = ?`).all(req.body.id) || [];
+        // tagsが存在しない場合は、tags.forEachを実行しない
+    // if(tags.length > 0 || tags !== undefined || tags !== null) {
         tags.forEach(tag => {
             const tag_links = db.prepare(`SELECT * FROM links_tags WHERE tag_id = ?`).all(tag.tag_id);
             tag_links.length === 1 ? db.prepare(`DELETE FROM tags WHERE id = ?`).run(tag.tag_id) : null;
         });
-        db.prepare(`SELECT * FROM links_tags WHERE link_id = ?`).all(req.body.id).length ? db.prepare(`DELETE FROM links_tags WHERE link_id = ?`).run(req.body.id) : null;
+    // }
         // linkを削除する
-        db.prepare(`SELECT * FROM links WHERE id = ? AND user_id = ?`).get(req.body.id, user.user_id) ? db.prepare(`DELETE FROM links WHERE id = ? AND user_id = ?`).run(req.body.id, user.user_id) : (()=>{throw new Error('権限がありません、もしくは、削除するlinkが見つかりません')})();
+        db.prepare(`SELECT * FROM links WHERE id = ? AND user_id = ?`).get(req.body.id, user.user_id) ?
+            db.prepare(`DELETE FROM links WHERE id = ? AND user_id = ?`).run(req.body.id, user.user_id) :
+            (()=>{throw new Error('権限がありません、もしくは、削除するlinkが見つかりません')})();
+    
         res.status(200)
             .json({result: 'success'
                 ,status: 200
@@ -1145,9 +1151,11 @@ app.post('/get_collect_value_for_test', (req, res) => {
 // linkのidとuser_idを一致した場合はupdateするエンドポイント
 app.post('/update_link', (req, res) => {
     try {
+        req.body.link_id ? null : (()=>{throw new Error('link_idがありません')})();
         const user = get_user_with_permission(req);
         user || user.writable ? null : (()=>{throw new Error('権限がありません')})();
-        const result = db.prepare(`UPDATE links SET link = ?, data_json_str = ?, updated_at = ? WHERE id = ? AND user_id = ?`).run(req.body.link, req.body.data_json_str, now(), req.body.id, user.user_id);
+        const result = db.prepare(`UPDATE links SET link = ?, data_json_str = ?, updated_at = ? WHERE id = ? AND user_id = ?`)
+            .run(req.body.link, req.body.data_json_str, now(), req.body.link_id, user.user_id);
         result ? null : (()=>{throw new Error('原因不明のupdateエラー')})();
         res.status(200)
             .json({result: 'success'
