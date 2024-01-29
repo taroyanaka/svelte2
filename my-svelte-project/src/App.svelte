@@ -1,7 +1,7 @@
 <script>
 // 空のリストを作る関数
-const make_new_list = (Text="foo_bar") => {
-	list = [{ id: 0, text: Text, link: 'https://google.com', check: false, check_date: new Date() }];
+const make_new_list = ({Text='foo_bar', Link='https://google.com', Check=false, Check_date=(new Date())}) =>{
+	list = [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}];
 	meta_data = {desc: ''};
 	data_id_from_online = null;
 };
@@ -440,11 +440,17 @@ afterUpdate(async () => {
 	<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
 	<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
 
-	<button on:click={() => make_new_list()} class="make_new_list">make_new_list</button>
+	<button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
 	<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
 	<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
 
 	<div>desc: {meta_data.desc}</div>
+	<!-- edit meta_data.desc only edit mode -->
+	{#if edit_mode}
+		<input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} />
+	{/if}
+
+
 	<ul>
 		<!-- eachでlist -->
 		{#each list as item, idx}
