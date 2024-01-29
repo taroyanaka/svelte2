@@ -1,4 +1,10 @@
 <script>
+// 空のリストを作る関数
+const make_new_list = (Text="foo_bar") => {
+	list = [{ id: 0, text: Text, link: 'https://google.com', check: false, check_date: new Date() }];
+	meta_data = {desc: ''};
+	data_id_from_online = null;
+};
 
 let data_id_from_online = null;
 
@@ -434,6 +440,7 @@ afterUpdate(async () => {
 	<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
 	<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
 
+	<button on:click={() => make_new_list()} class="make_new_list">make_new_list</button>
 	<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
 	<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
 
