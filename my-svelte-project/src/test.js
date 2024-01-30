@@ -1,5 +1,6 @@
 const test_db_init_only_set_name_password_test_mode = async () =>{
     (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
+    console.log('success');
 }
 const test_db_init_on_start = async () =>{
     try {

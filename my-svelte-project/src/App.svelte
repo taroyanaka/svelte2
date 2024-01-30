@@ -1,4 +1,10 @@
 <script>
+// const obj = await app.$$.ctx;
+// const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
+// const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
+// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
+// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
+	
 // 空のリストを作る関数
 const make_new_list = ({Text='foo_bar', Link='https://google.com', Check=false, Check_date=(new Date())}) =>{
 	list = [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}];
@@ -59,9 +65,131 @@ let COLLECT_VALUE = [{'value': 0},{'value2': 1}];
 // let DOMAIN_NAME = 'https://spectrum-whip-sulfur.glitch.me/';
 const DOMAIN_NAME = 'http://localhost:8000/';
 
+
+import { onMount } from 'svelte';
+import { afterUpdate } from 'svelte';
+import { isURL } from 'validator';
+// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
+$: {
+console.log(list, "listが更新されたらhtmlを更新する");
+
+// update_dataはdougnutのdataを更新する関数
+// update_data();
+}
+
+
+// idを指定してcheckを切り替え
+const check_fn = (idx) => {
+	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
+	if(list[idx]['check'] === true){
+		// delete_event(list[idx]['check_date']);
+		list[idx]['check'] = false;
+		list[idx]['check_date'] = new Date();
+		return;
+	};
+
+	if(list[idx]['check'] === false){
+		list[idx]['check_date'] = new Date();
+		// add_event(list[idx]['text'], list[idx]['check_date']);
+		list[idx]['check'] = true;
+	};
+	// data_id_from_onlineがnullでなければ
+	if(data_id_from_online !== null){
+		console.log("data_id_from_online", data_id_from_online);
+		insert_or_update_link(data_id_from_online);
+	}
+
+};
+// 最大のid+1(listが空の時は0)
+// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
+const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: new Date() });
+// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
+const add_list = () => list = [...list, new_list_obj("foo_bar", list.length)];
+const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
+const delete_list = (idx) => list = [...list.slice(0, idx), ...list.slice(idx + 1)];
+// checkしたlistのindexの配列を返す関数
+const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
+
+// StrをisURLでチェックしてtrueならそのまま返す関数
+const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
+// listのvalidationの関数
+// 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
+// {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
+const list_validation = (Ary) => {
+	try {
+	// Aryが配列でない場合はエラー
+	Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
+	Ary.forEach((V, I) => {
+		// idが整数でない場合はエラー
+		typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
+		// textが1文字以上でない場合はエラー
+		V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
+		// linkがURLでない場合はエラー
+		typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
+		// linkがURLでない場合はエラー
+		url_check(V.link);
+		// checkがBooleanでない場合はエラー
+		typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
+		// check_dateがDateでない場合はエラー
+		V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
+	});
+	// Aryが空の場合はエラー
+	Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
+	} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+	}
+};
+
+
+const init = (item, From_Online, User_Name) => {
+	list = JSON.parse(item.data_json_str)['data1'];
+
+	data_id_from_online = item.id;
+	meta_data.desc = 'foo_bar_buz';
+
+	if(From_Online){
+		// JSON.parse(item.data_json_str)['data1'];
+		console.log("NAME === User_Name", NAME === User_Name);
+		// console.log("uncheck_list", uncheck_list());
+		// NAMEとUser_Nameが一致する場合は何もせず、
+		// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
+		NAME === User_Name ? null : list = uncheck_list();
+		return;
+	}
+	list.forEach((V, IDX)=>{
+		list = [...list, new_list_obj(V, IDX)];
+	});
+};
+
+
+// onMount(fetch_hello({}));
+onMount(async () => {
+	try {
+		await fetch_hello({});
+		await fetch_get_tags_for_autocomplete();	
+		// await init(JSON.parse(hello_fetch_data[0]['data_json_str']['data1']));
+	} catch (error) {
+		console.log(error);		
+	}
+});	
+afterUpdate(async () => {
+	try {
+		// await fetch_hello({});
+		// await fetch_get_tags_for_autocomplete();	
+		// await init(JSON.parse(hello_fetch_data[7][0]['data_json_str']['data1']));
+
+	} catch (error) {
+		console.log(error);		
+	}
+});
+
+
+
 // コードの見通しを良くするために(エディタのFold機能のために)、all_fetch_fnとall_fetchにより、関数を全てまとめてオブジェクトにして返す
 // 1.all_fetch_fnを定義して、関数を全てまとめる 2.all_fetch_fn()を実行して全ての関数が含まれたオブジェクトを取得 3.all_fetchの全ての関数を取得
 const all_fetch_fn = ()  => {
+	const test = async (foo) => {console.log('test')};
 	// linkのidとusernameが一致するものがある場合はupdateする
 	// 一致した場合はupdateで、一致しない場合はinsertになる関数
 	// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
@@ -280,6 +408,7 @@ const all_fetch_fn = ()  => {
 
 	// returnで全ての関数が含まれたオブジェクトを返す
 	return {
+		test,
 		insert_or_update_link,
 		fetch_hello,
 		fetch_insert_link,
@@ -302,132 +431,346 @@ const all_fetch_fn = ()  => {
 
 };
 const all_fetch = all_fetch_fn();
-const {insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch;
+const {test,insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch;
 
-import { onMount } from 'svelte';
-import { afterUpdate } from 'svelte';
-import { isURL } from 'validator';
-// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
-$: {
-console.log(list, "listが更新されたらhtmlを更新する");
 
-// update_dataはdougnutのdataを更新する関数
-// update_data();
+const all_test_fn = ()  => {
+	const test_db_init_only_set_name_password_test_mode = async () =>{
+    (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
+    console.log('success');
+}
+const test_db_init_on_start = async () =>{
+    try {
+    (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
+    RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: TEST_MODE }))).json()
+    RESPONSE.result === 'fail' ? (()=>{throw new Error(RESPONSE.error)})() : null;
+    } catch (error) {
+    ERROR_MESSAGE = error.message;
+    }
+}
+const test_db_init_on_end = async () =>{
+    try {
+    (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
+    RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: TEST_MODE }))).json()
+    RESPONSE.result === 'fail' ? (()=>{throw new Error(RESPONSE.error)})() : null;
+    } catch (error) {
+    ERROR_MESSAGE = error.message;
+    }
 }
 
+const test_message_stacker = (Data, Expect_result) =>{
+    SUCCESS_MESSAGE === 'success'
+        ? (console.log('OK'), SUCCESS_MESSAGE_STACK.push(['OK', (Data?Data+'は':'') + 'OK']))
+        : null;
+    ERROR_MESSAGE === Expect_result
+        ? (console.log('OK'), ERROR_MESSAGE_STACK.push(['OK', Expect_result]))
+        : console.log('NG');
+}
+const test_for_LINK = async (
+    {
+        Data='SELECT',
+        Expect_result='SQLの予約語を含む場合はエラー'
+    }
+    ) =>{
+    LINK = Data;
+    await fetch_insert_link();
+    message_stacker(Data, Expect_result);
+}
 
-// idを指定してcheckを切り替え
-const check_fn = (idx) => {
-	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
-	if(list[idx]['check'] === true){
-		// delete_event(list[idx]['check_date']);
-		list[idx]['check'] = false;
-		list[idx]['check_date'] = new Date();
-		return;
-	};
+const test_for_TAG = async (
+    {
+        Data='test!',
+        Param_of_link_id=1,
+        Expect_result='記号を含む場合はエラー'
+    }
+    ) =>{
+    await fetch_insert_tag(Param_of_link_id, Data);
+    message_stacker(Data, Expect_result);
+}
 
-	if(list[idx]['check'] === false){
-		list[idx]['check_date'] = new Date();
-		// add_event(list[idx]['text'], list[idx]['check_date']);
-		list[idx]['check'] = true;
-	};
-	// data_id_from_onlineがnullでなければ
-	if(data_id_from_online !== null){
-		console.log("data_id_from_online", data_id_from_online);
-		insert_or_update_link(data_id_from_online);
-	}
+const test_for_COMMENT = async (
+    {
+        Data=('a'.repeat(51)),
+        Param_of_link_id=1,
+        Expect_result='commentの文字数がdata_limitを超える場合はエラー'
+    }
+    ) =>{
+    COMMENT = Data;
+    await fetch_insert_comment(Param_of_link_id);
+    message_stacker(Data, Expect_result);
+}
+
+const test_for_COMMENT_REPLY = async (
+    {
+        Data=('a'.repeat(51)),
+        Param_of_comment_id=1,
+        Expect_result='commentの文字数がdata_limitを超える場合はエラー'
+    }
+) =>{
+    COMMENT_REPLY = Data;
+    await fetch_insert_comment_reply(Param_of_comment_id);
+    message_stacker(Data, Expect_result);
+}
+
+const test_for_LIKE_INCREMENT_OR_DECREMENT = async (
+    {
+        Data='',
+        Param_of_link_id=1,
+        Expect_result='success'
+    }
+) =>{
+    await fetch_like_increment_or_decrement(Param_of_link_id);
+    message_stacker(Data, Expect_result);
+}
+
+const test_sample_exe = async () => {
+    await test_db_init_on_start();
+    await test_for_LINK({
+        Data: 'SELECT',
+        Expect_result: 'SQLの予約語を含む場合はエラー'
+    });
+    await test_for_LINK({
+        Data: 'https::///google.co.jp',
+        Expect_result: 'URLの形式が正しくありません'
+    });
+    await test_for_LINK({
+        Data: 'https://hogehoge.com/',
+        Expect_result: '許可されていないURLです'
+    });
+    await test_for_LINK({
+        Data: 'https://www.yahoo.co.jp/',
+        Expect_result: 'OK'
+    });
+    await test_for_LINK({
+        Data: 'https://www.google.co.jp/',
+        Expect_result: 'OK'
+    });
+    await test_for_LINK({
+        Data: 'https://www.youtube.com/',
+        Expect_result: 'OK'
+    });
+    await test_for_LINK({
+        Data: 'https://www.google.co.jp/',
+        Expect_result: '同じlinkが存在します'
+    });
+    
+    console.log(ERROR_MESSAGE_STACK);
+    console.log(SUCCESS_MESSAGE_STACK);
+}
+
+const test_sample_exe2 = async () => {
+    await test_for_TAG({
+        Param_of_link_id: 1,
+        Expect_result: '記号を含む場合はエラー'
+    });
+    await test_for_TAG({
+        Data: 'test!',
+        Param_of_link_id: 1,
+        Expect_result: '記号を含む場合はエラー'
+    });
+    await test_for_TAG({
+        Data: 'test tag',
+        Param_of_link_id: 1,
+        Expect_result: '空白を含む場合はエラー'
+    });
+    await test_for_TAG({
+        Data: 'testlong',
+        Param_of_link_id: 1,
+        Expect_result: '7文字以上はエラー'
+    });
+    await test_for_TAG({
+        Data: 'SELECT',
+        Param_of_link_id: 1,
+        Expect_result: 'SQLの予約語を含む場合はエラー'
+    });
+    await test_for_TAG({
+        Data: 'test',
+        Param_of_link_id: 1,
+        Expect_result: 'OK'
+    });
+    // 既に同じタグがついています
+    await test_for_TAG({
+        Data: 'test',
+        Param_of_link_id: 1,
+        Expect_result: '既に同じタグがついています'
+    });
+    // 別のlinkへのtagはエラーにならない
+    await test_for_TAG({
+        Data: 'test',
+        Param_of_link_id: 2,
+        Expect_result: 'OK'
+    });
+    // 既に同じタグがついています
+    await test_for_TAG({
+        Data: 'test',
+        Param_of_link_id: 2,
+        Expect_result: '既に同じタグがついています'
+    });
+
+    await test_for_TAG({
+        Data: 'TEST',
+        Param_of_link_id: 1,
+        Expect_result: 'OK'
+    });
+
+    console.log(ERROR_MESSAGE_STACK);
+    console.log(SUCCESS_MESSAGE_STACK);
+}
+
+const test_sample_exe3 = async () => {
+    // 'commentの文字数がdata_limitを超える場合はエラー'
+    // 'should return "commentの文字数がdata_limit(test userは1000)を超える場合はエラー" when comment length is greater than data limit'
+    // error_check_insert_comment('a'.repeat(1500), 50);
+
+    await test_for_COMMENT({
+        Data: 'a'.repeat(1500),
+        Param_of_link_id: 1,
+        Expect_result: 'commentの文字数がdata_limit(test userは50)を超える場合はエラー'
+    });
+    // 'should return "0文字の場合はエラー" when comment length is 0'
+    // error_check_insert_comment('', 100);
+    await test_for_COMMENT({
+        Data: '',
+        Param_of_link_id: 1,
+        Expect_result: '0文字の場合はエラー'
+    });
+    // 'should return "空白を含む場合はエラー" when comment contains spaces'
+    // error_check_insert_comment('This is a comment with spaces', 100);
+    await test_for_COMMENT({
+        Data: 'This is a comment with spaces',
+        Param_of_link_id: 1,
+        Expect_result: '空白を含む場合はエラー'
+    });
+    // 'should return "記号を含む場合はエラー" when comment contains symbols'
+    // error_check_insert_comment('This is a comment with ! symbol', 100);
+    await test_for_COMMENT({
+        Data: 'This!Symbol',
+        Param_of_link_id: 1,
+        Expect_result: '記号を含む場合はエラー'
+    });
+    // 'should return "300文字以上はエラー" when comment length is greater than 300'
+    // error_check_insert_comment('a'.repeat(301), 100);
+    await test_for_COMMENT({
+        Data: 'a'.repeat(301),
+        Param_of_link_id: 1,
+        Expect_result: '300文字以上はエラー'
+    });
+    // 'should return "SQLの予約語を含む場合はエラー" when comment contains SQL reserved words'
+    // error_check_insert_comment('SELECT * FROM comments', 100);
+    await test_for_COMMENT({
+        Data: 'SELECT * FROM comments',
+        Param_of_link_id: 1,
+        Expect_result: 'SQLの予約語を含む場合はエラー'
+    });
+    // 'should return "OK" when comment is valid'
+    // error_check_insert_comment('This is a valid comment', 100);
+    await test_for_COMMENT({
+        Data: 'ThisIsaValidComment',
+        Param_of_link_id: 1,
+        Expect_result: 'OK'
+    });
+}
+
+const test_sample_exe4 = async () => {
+    // 'comment_replyが空の場合はエラー'
+    // 'comment_replyの文字数がdata_limitを超える場合はエラー'
+    await test_for_COMMENT_REPLY({
+        Data: 'a'.repeat(1500),
+        Param_of_comment_id: 1,
+        Expect_result: 'comment_replyの文字数がdata_limit(test userは50)を超える場合はエラー'
+    });
+    // '0文字の場合はエラー'
+    await test_for_COMMENT_REPLY({
+        Data: '',
+        Param_of_comment_id: 1,
+        Expect_result: '0文字の場合はエラー'
+    });
+    // '記号を含む場合はエラー'
+    await test_for_COMMENT_REPLY({
+        Data: 'This!Symbol',
+        Param_of_comment_id: 1,
+        Expect_result: '記号を含む場合はエラー'
+    });
+    // '空白を含む場合はエラー'
+    await test_for_COMMENT_REPLY({
+        Data: 'spa ces',
+        Param_of_comment_id: 1,
+        Expect_result: '空白を含む場合はエラー'
+    });
+    // '10文字以上はエラー'
+    await test_for_COMMENT_REPLY({
+        Data: 'a'.repeat(11),
+        Param_of_comment_id: 1,
+        Expect_result: '10文字以上はエラー'
+    });
+    // 'SQLの予約語を含む場合はエラー'
+    await test_for_COMMENT_REPLY({
+        Data: 'SELECT * FROM comments',
+        Param_of_comment_id: 1,
+        Expect_result: 'SQLの予約語を含む場合はエラー'
+    });
+    // 'OK'
+    await test_for_COMMENT_REPLY({
+        Data: 'ValidRep',
+        Param_of_comment_id: 1,
+        Expect_result: 'OK'
+    });
+    // 同じユーザーから同じcommentへのreplyが既に存在する場合はエラー
+    await test_for_COMMENT_REPLY({
+        Data: 'ValidRep',
+        Param_of_comment_id: 1,
+        Expect_result: '同じユーザーから同じcommentへのreplyが既に存在する場合はエラー'
+    });
+}
+
+const test_sample_exe5 = async () => {
+    // link_idがありません
+    await test_for_LIKE_INCREMENT_OR_DECREMENT({
+        Param_of_link_id: 1000000000,
+        Expect_result: 'link_idがありません'
+    });
+    // message.response = 'increment_it';
+    await test_for_LIKE_INCREMENT_OR_DECREMENT({
+        Param_of_link_id: 1,
+        Expect_result: 'success'
+    });
+    // message.response = 'decrement_it';
+    await test_for_LIKE_INCREMENT_OR_DECREMENT({
+        Param_of_link_id: 1,
+        Expect_result: 'success'
+    });
+    // do like again
+    await test_for_LIKE_INCREMENT_OR_DECREMENT({
+        Param_of_link_id: 1,
+        Expect_result: 'success'
+    });
+}
+return {
+test_db_init_only_set_name_password_test_mode,
+test_db_init_on_start,
+test_db_init_on_end,
+test_message_stacker,
+test_for_LINK,
+test_for_TAG,
+test_for_COMMENT,
+test_for_COMMENT_REPLY,
+test_for_LIKE_INCREMENT_OR_DECREMENT,
+test_sample_exe,
+test_sample_exe2,
+test_sample_exe3,
+test_sample_exe4,
+test_sample_exe5,
+}
 
 };
-// 最大のid+1(listが空の時は0)
-// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
-const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: new Date() });
-// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => list = [...list, new_list_obj("foo_bar", list.length)];
-const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
-const delete_list = (idx) => list = [...list.slice(0, idx), ...list.slice(idx + 1)];
-// checkしたlistのindexの配列を返す関数
-const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
-
-// StrをisURLでチェックしてtrueならそのまま返す関数
-const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
-// listのvalidationの関数
-// 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
-// {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
-const list_validation = (Ary) => {
-	try {
-	// Aryが配列でない場合はエラー
-	Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
-	Ary.forEach((V, I) => {
-		// idが整数でない場合はエラー
-		typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
-		// textが1文字以上でない場合はエラー
-		V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
-		// linkがURLでない場合はエラー
-		typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
-		// linkがURLでない場合はエラー
-		url_check(V.link);
-		// checkがBooleanでない場合はエラー
-		typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
-		// check_dateがDateでない場合はエラー
-		V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
-	});
-	// Aryが空の場合はエラー
-	Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
-	} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;
-	}
-};
-
-
-const init = (item, From_Online, User_Name) => {
-	list = JSON.parse(item.data_json_str)['data1'];
-
-	data_id_from_online = item.id;
-	meta_data.desc = 'foo_bar_buz';
-
-	if(From_Online){
-		// JSON.parse(item.data_json_str)['data1'];
-		console.log("NAME === User_Name", NAME === User_Name);
-		// console.log("uncheck_list", uncheck_list());
-		// NAMEとUser_Nameが一致する場合は何もせず、
-		// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
-		NAME === User_Name ? null : list = uncheck_list();
-		return;
-	}
-	list.forEach((V, IDX)=>{
-		list = [...list, new_list_obj(V, IDX)];
-	});
-};
-
-
-// onMount(fetch_hello({}));
-onMount(async () => {
-	try {
-		await fetch_hello({});
-		await fetch_get_tags_for_autocomplete();	
-		// await init(JSON.parse(hello_fetch_data[0]['data_json_str']['data1']));
-	} catch (error) {
-		console.log(error);		
-	}
-});	
-afterUpdate(async () => {
-	try {
-		// await fetch_hello({});
-		// await fetch_get_tags_for_autocomplete();	
-		// await init(JSON.parse(hello_fetch_data[7][0]['data_json_str']['data1']));
-
-	} catch (error) {
-		console.log(error);		
-	}
-});
-
-
+const all_test = all_test_fn();
+const {test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_message_stacker,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test;
 
 
 </script>
 
-
+<button on:click={() => test()}>test</button>
+<button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 
 
 <div class="core">
