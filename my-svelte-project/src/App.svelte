@@ -104,7 +104,7 @@ const check_fn = (idx) => {
 // const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
 const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: new Date() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => list = [...list, new_list_obj("foo_bar", list.length)];
+const add_list = () => list = [...list, new_list_obj(new_text, list.length)];
 const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
 const delete_list = (idx) => list = [...list.slice(0, idx), ...list.slice(idx + 1)];
 // checkしたlistのindexの配列を返す関数
@@ -473,7 +473,7 @@ const test_for_LINK = async (
     ) =>{
     LINK = Data;
     await fetch_insert_link();
-    message_stacker(Data, Expect_result);
+    test_message_stacker(Data, Expect_result);
 }
 
 const test_for_TAG = async (
@@ -484,7 +484,7 @@ const test_for_TAG = async (
     }
     ) =>{
     await fetch_insert_tag(Param_of_link_id, Data);
-    message_stacker(Data, Expect_result);
+    test_message_stacker(Data, Expect_result);
 }
 
 const test_for_COMMENT = async (
@@ -496,7 +496,7 @@ const test_for_COMMENT = async (
     ) =>{
     COMMENT = Data;
     await fetch_insert_comment(Param_of_link_id);
-    message_stacker(Data, Expect_result);
+    test_message_stacker(Data, Expect_result);
 }
 
 const test_for_COMMENT_REPLY = async (
@@ -508,7 +508,7 @@ const test_for_COMMENT_REPLY = async (
 ) =>{
     COMMENT_REPLY = Data;
     await fetch_insert_comment_reply(Param_of_comment_id);
-    message_stacker(Data, Expect_result);
+    test_message_stacker(Data, Expect_result);
 }
 
 const test_for_LIKE_INCREMENT_OR_DECREMENT = async (
@@ -519,7 +519,7 @@ const test_for_LIKE_INCREMENT_OR_DECREMENT = async (
     }
 ) =>{
     await fetch_like_increment_or_decrement(Param_of_link_id);
-    message_stacker(Data, Expect_result);
+    test_message_stacker(Data, Expect_result);
 }
 
 const test_sample_exe = async () => {
@@ -745,10 +745,10 @@ const test_sample_exe5 = async () => {
     });
 }
 return {
+test_message_stacker,
 test_db_init_only_set_name_password_test_mode,
 test_db_init_on_start,
 test_db_init_on_end,
-test_message_stacker,
 test_for_LINK,
 test_for_TAG,
 test_for_COMMENT,
@@ -763,13 +763,14 @@ test_sample_exe5,
 
 };
 const all_test = all_test_fn();
-const {test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_message_stacker,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test;
+const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test;
 
 
 </script>
 
 <button on:click={() => test()}>test</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
+<button on:click={() => test_for_TAG({})}>test_for_TAG</button>
 
 
 <div class="core">
