@@ -1,8 +1,17 @@
 <!-- ゲージチャート(ドーナツチャート)とか入れたり進捗の度合いを明示的にしたい -->
 <!-- https://www.chartjs.org/samples/2.6.0/charts/doughnut.html -->
 
-let data = null;
 
+// dataの初期値のサンプルデータ
+let data = null;
+// data = {
+//   labels: ['Red', 'Green', 'Yellow', 'Grey', 'Dark Grey'],
+//   datasets: [
+//     {
+//       data: [300, 50, 100, 40, 120],
+//     },
+//   ],
+// };
 
 
 // 白に近い灰色
