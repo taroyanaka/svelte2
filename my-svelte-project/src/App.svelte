@@ -1,4 +1,27 @@
 <script>
+// left_sideかright_sideどちらかだけを表示するトグル関数
+let is_show_left = true;
+let is_show_right = true;
+const toggle_left_or_right_side = () => {
+	// is_show_leftとis_show_rightが両方true、どちらかだけがtrue、3つの状態がある
+		if (is_show_left && is_show_right) {
+			is_show_left = true;
+			is_show_right = false;
+		} else if (is_show_left && !is_show_right) {
+			is_show_left = false;
+			is_show_right = true;
+		} else if (!is_show_left && is_show_right) {
+			is_show_left = true;
+			is_show_right = true;
+		}
+};
+
+let is_calendar_visible = true;
+const toggle_calendar = () => is_calendar_visible = !is_calendar_visible;
+
+
+
+
 const all_calendar_fn = () => {
     let calendar_val = null;
     let all_event = null;
@@ -839,10 +862,16 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 <button on:click={() => test_for_TAG({})}>test_for_TAG</button>
 <button on:click={() => list_validation({})}>list_validation</button>
+<button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
+{is_show_left}
+{is_show_right}
+<button on:click={toggle_calendar}>toggle_calendar</button>
+
 
 
 <div class="core">
-	<div class="left_side">
+<div class={is_show_left ? '' : 'hidden'}>
+<div class="left_side">
 		{data_id_from_online}
 		<button on:click={() => add_event()}>add_event</button>
 		<button on:click={() => show_event()}>show_event</button>
@@ -852,7 +881,9 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		<span>{calendar_val}</span>
 
 		{#if dev_mode === false}
+		<div class={is_calendar_visible ? '' : 'hidden'}>
 			<div id='calendar'></div>
+		</div>
 		{/if}
 
 
@@ -897,13 +928,15 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 	<input type="text" value={new_text} on:input={(e) => new_text = e.target.value} />
 	<input type="url" value={new_link} on:input={(e) => new_link = e.target.value} />
 	<button on:click={() => add_list()}>add</button>
-
-	</div>
+</div>
+</div>
 
 
 
 	{#if dev_mode === false}
-	<div class="right_side">
+<!-- <div class={is_only_one_side_open === 'left' ? '' : 'hidden'}> -->
+<div class={is_show_right ? '' : 'hidden'}>
+<div class="right_side">
 	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
 	name: <input bind:value={NAME} type="text" placeholder="name">
 	password: <input bind:value={PASSWORD} type="password" placeholder="password">
@@ -1005,6 +1038,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 	{/each}
 	</ul>
 	</div>
+	</div>
 	{/if}
 </div>
 
@@ -1096,10 +1130,10 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 }
 .left_side, .right_side {
   flex: 1;
-
 }
-/* hrefのテキストの色を緑色にする */
-/* a:link { color: green; } */
+.hidden {
+    display: none;
+}
 
 </style>
 	
