@@ -1,16 +1,7 @@
 <script>
-const one_list_event_check = () => {
-	console.log("one_list_event_check");
-	list.forEach((item, idx) => {
-		check_fn(idx);
-	});
-}
-
 const all_event_check = () => {
 	// eventが既にある場合は全て削除
 	init_calendar();
-
-
 	console.log("all_event_check");
 	// hello_fetch_dataからusernameがNAMEと一致するものを取り出す
 	const my_fetch_list = hello_fetch_data.filter((each_list) => each_list['username'] === NAME);
@@ -20,29 +11,13 @@ const all_event_check = () => {
 	const my_list_data1 = all_my_fetch_list.map((web_data) => JSON.parse(web_data.data_json_str)['data1']);
 	// my_list_data1を一つのlistにまとめる
 	let all_my_list_data1 = my_list_data1.reduce((acc, cur) => acc.concat(cur), []);
-
 	// all_my_list_data1のcheck_dateをDateに変換
-	all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date)}));
-
-	// all_my_listの全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
-	all_my_list_data1.forEach((item, idx) => {
-		item['check'] === true ? add_event(item['text'], item['check_date']) : 
-			delete_event(item['check_date']);
-			// null;
+	const time_fix_all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date)}));
+	// time_fix_all_my_list_data1の全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
+	time_fix_all_my_list_data1.forEach((item, idx) => {
+		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
 	});
 }
-
-const check_event = () => {
-	console.log("check_event");
-	// calendarを一旦初期化
-	init_calendar();
-	// listの全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
-	list.forEach((item, idx) => {
-		item['check'] === true ? add_event(item['text'], item['check_date']) : 
-			delete_event(item['check_date']);
-	});
-}
-
 
 // left_sideかright_sideどちらかだけを表示するトグル関数
 let is_show_left = true;
