@@ -1,4 +1,49 @@
 <script>
+const one_list_event_check = () => {
+	console.log("one_list_event_check");
+	list.forEach((item, idx) => {
+		check_fn(idx);
+	});
+}
+
+const all_event_check = () => {
+	// eventが既にある場合は全て削除
+	init_calendar();
+
+
+	console.log("all_event_check");
+	// hello_fetch_dataからusernameがNAMEと一致するものを取り出す
+	const my_fetch_list = hello_fetch_data.filter((each_list) => each_list['username'] === NAME);
+	// 全てのmy_fetch_listを一つのlistにまとめる
+	const all_my_fetch_list = my_fetch_list.reduce((acc, cur) => acc.concat(cur), []);
+	// all_my_fetch_listからdata1を取り出す
+	const my_list_data1 = all_my_fetch_list.map((web_data) => JSON.parse(web_data.data_json_str)['data1']);
+	// my_list_data1を一つのlistにまとめる
+	let all_my_list_data1 = my_list_data1.reduce((acc, cur) => acc.concat(cur), []);
+
+	// all_my_list_data1のcheck_dateをDateに変換
+	all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date)}));
+
+	// all_my_listの全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
+	all_my_list_data1.forEach((item, idx) => {
+		item['check'] === true ? add_event(item['text'], item['check_date']) : 
+			delete_event(item['check_date']);
+			// null;
+	});
+}
+
+const check_event = () => {
+	console.log("check_event");
+	// calendarを一旦初期化
+	init_calendar();
+	// listの全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
+	list.forEach((item, idx) => {
+		item['check'] === true ? add_event(item['text'], item['check_date']) : 
+			delete_event(item['check_date']);
+	});
+}
+
+
 // left_sideかright_sideどちらかだけを表示するトグル関数
 let is_show_left = true;
 let is_show_right = true;
@@ -23,7 +68,7 @@ const all_calendar_fn = () => {
     let calendar_val = null;
     let all_event = null;
 
-    const calendar_init = () =>{
+    const init_calendar = () =>{
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -72,14 +117,14 @@ const all_calendar_fn = () => {
 	return {
 		calendar_val,
 		all_event,
-        calendar_init,
+        init_calendar,
         show_event,
         add_event,
         delete_event,
     }
 }
 const all_calendar = all_calendar_fn();
-const {calendar_val,all_event,calendar_init,show_event,add_event,delete_event,} = all_calendar;
+const {calendar_val,all_event,init_calendar,show_event,add_event,delete_event,} = all_calendar;
 
 
 
@@ -229,7 +274,7 @@ const list_validation = (Ary) => {
 
 const init = (item, From_Online, User_Name) => {
 	// calendarの初期化
-	calendar_init();
+	init_calendar();
 	list = JSON.parse(item.data_json_str)['data1'];
 	// listのcheck_dateをISO 8601からDateに変換
 	list = list.map((item) => ({...item, check_date: new Date(item.check_date)}));
@@ -264,7 +309,7 @@ onMount(async () => {
 	try {
 		await fetch_hello({});
 		await fetch_get_tags_for_autocomplete();	
-		await calendar_init();
+		await init_calendar();
 		// await init(JSON.parse(hello_fetch_data[0]['data_json_str']['data1']));
 	} catch (error) {
 		console.log(error);		
@@ -867,6 +912,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 
 
 <button on:click={() => test()}>test</button>
+<button on:click={() => all_event_check()}>all_event_check</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 <button on:click={() => test_for_TAG({})}>test_for_TAG</button>
 <button on:click={() => list_validation({})}>list_validation</button>
