@@ -11,8 +11,8 @@ const all_event_check = () => {
 	const my_list_data1 = all_my_fetch_list.map((web_data) => JSON.parse(web_data.data_json_str)['data1']);
 	// my_list_data1を一つのlistにまとめる
 	let all_my_list_data1 = my_list_data1.reduce((acc, cur) => acc.concat(cur), []);
-	// all_my_list_data1のcheck_dateをDateに変換
-	const time_fix_all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date)}));
+	// all_my_list_data1のcheck_dateをISO8601からDateに変換
+	const time_fix_all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date) }));
 	// time_fix_all_my_list_data1の全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
 	time_fix_all_my_list_data1.forEach((item, idx) => {
 		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
@@ -111,7 +111,7 @@ const {calendar_val,all_event,init_calendar,show_event,add_event,delete_event,} 
 // await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
 	
 // 空のリストを作る関数
-const make_new_list = ({Text='foo_bar', Link='https://google.com', Check=false, Check_date=(new Date())}) =>{
+const make_new_list = ({Text='foo_bar', Link='https://google.com', Check=false, Check_date=((new Date()).toISOString())}) =>{
 	list = [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}];
 	meta_data = {desc: ''};
 	data_id_from_online = null;
@@ -187,15 +187,19 @@ console.log(list, "listが更新されたらhtmlを更新する");
 const check_fn = (idx) => {
 	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
 	if(list[idx]['check'] === true){
-		delete_event(list[idx]['check_date']);
+		// delete_event(list[idx]['check_date']);
+		delete_event((new Date(list[idx]['check_date'])));
 		list[idx]['check'] = false;
-		list[idx]['check_date'] = new Date();
+		// list[idx]['check_date'] = new Date();
+		list[idx]['check_date'] = (new Date()).toISOString();
 		return;
 	};
 
 	if(list[idx]['check'] === false){
-		list[idx]['check_date'] = new Date();
-		add_event(list[idx]['text'], list[idx]['check_date']);
+		// list[idx]['check_date'] = new Date();
+		list[idx]['check_date'] = (new Date()).toISOString();
+		// add_event(list[idx]['text'], list[idx]['check_date']);
+		add_event(list[idx]['text'], (new Date(list[idx]['check_date'])));
 		list[idx]['check'] = true;
 	};
 	// data_id_from_onlineがnullでなければ
@@ -207,7 +211,7 @@ const check_fn = (idx) => {
 };
 // 最大のid+1(listが空の時は0)
 // const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
-const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: new Date() });
+const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: (new Date()).toISOString() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
 const add_list = () => list = [...list, new_list_obj(new_text, list.length)];
 const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
@@ -252,7 +256,8 @@ const init = (item, From_Online, User_Name) => {
 	init_calendar();
 	list = JSON.parse(item.data_json_str)['data1'];
 	// listのcheck_dateをISO 8601からDateに変換
-	list = list.map((item) => ({...item, check_date: new Date(item.check_date)}));
+	// list = list.map((item) => ({...item, check_date: new Date(item.check_date)}));
+	list = list.map((item) => ({ ...item, check_date: (new Date(item.check_date)).toISOString() }));
 
 	data_id_from_online = item.id;
 	meta_data.desc = 'foo_bar_buz';
@@ -383,7 +388,7 @@ const all_fetch_fn = ()  => {
 	}
 
 	const uncheck_list = () => {
-		let res = list.map((item) => ({...item, check: false, check_date: new Date()}))
+		let res = list.map((item) => ({...item, check: false, check_date: (new Date()).toISOString() }))
 		// console.log(res);
 		return res;
 	};
