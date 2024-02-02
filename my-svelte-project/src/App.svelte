@@ -4,16 +4,13 @@ let is_show_left = true;
 let is_show_right = true;
 const toggle_left_or_right_side = () => {
 	// is_show_leftとis_show_rightが両方true、どちらかだけがtrue、3つの状態がある
-		if (is_show_left && is_show_right) {
-			is_show_left = true;
-			is_show_right = false;
-		} else if (is_show_left && !is_show_right) {
-			is_show_left = false;
-			is_show_right = true;
-		} else if (!is_show_left && is_show_right) {
-			is_show_left = true;
-			is_show_right = true;
-		}
+	if (is_show_left && is_show_right) {
+		[is_show_left, is_show_right] = [true, false];
+	} else if (is_show_left && !is_show_right) {
+		[is_show_left, is_show_right] = [false, true];
+	} else if (!is_show_left && is_show_right) {
+		[is_show_left, is_show_right] = [true, true];
+	}
 };
 
 let is_calendar_visible = true;
@@ -863,8 +860,6 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <button on:click={() => test_for_TAG({})}>test_for_TAG</button>
 <button on:click={() => list_validation({})}>list_validation</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
-{is_show_left}
-{is_show_right}
 <button on:click={toggle_calendar}>toggle_calendar</button>
 
 
