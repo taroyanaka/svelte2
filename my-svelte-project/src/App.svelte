@@ -1,4 +1,7 @@
 <script>
+let calendar_val = null;
+let all_event = null;
+
 // left_sideかright_sideどちらかだけを表示するトグル関数
 let is_show_left = true;
 let is_show_right = true;
@@ -20,10 +23,8 @@ const toggle_calendar = () => is_calendar_visible = !is_calendar_visible;
 
 
 const all_calendar_fn = () => {
-    let calendar_val = null;
-    let all_event = null;
-
     const calendar_init = () =>{
+		console.log("cal_init");
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -70,8 +71,8 @@ const all_calendar_fn = () => {
         });
     }
 	return {
-		calendar_val,
-		all_event,
+		// calendar_val,
+		// all_event,
         calendar_init,
         show_event,
         add_event,
@@ -79,7 +80,10 @@ const all_calendar_fn = () => {
     }
 }
 const all_calendar = all_calendar_fn();
-const {calendar_val,all_event,calendar_init,show_event,add_event,delete_event,} = all_calendar;
+const {
+	// calendar_val,
+	// all_event,
+	calendar_init,show_event,add_event,delete_event,} = all_calendar;
 
 
 
@@ -157,17 +161,50 @@ import { isURL } from 'validator';
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
 $: {
 console.log(list, "listが更新されたらhtmlを更新する");
-
 // update_dataはdougnutのdataを更新する関数
 // update_data();
+// update_calendarはカレンダーのイベントを更新する関数(listが更新されたらcalendarが更新される)
+// update_calendar();
+console.log(calendar_val);
+event_check();
+// calendar_val !== null ? show_event() : null;
 }
 
+const event_check = () => {
+	console.log("event_check");
+	// delete_event(list[idx]['check_date']);
+	// add_event(list[idx]['text'], list[idx]['check_date']);
+	// hello_fetch_dataからlistを取り出す
+	// list = JSON.parse(item.data_json_str)['data1'];
+// hello_fetch_dataからusernameがNAMEと一致するものを取り出す
+	const my_fetch_list = hello_fetch_data.filter((each_list) => each_list['username'] === NAME);
+	// listからnameが一致するものを取り出す
+	// const all_each_list = fetch_list.filter((each_list) => each_list['username'] === NAME);
+	// all_each_listの全てのlistを一つのlistにまとめる
+	// const one_all_each_list = all_each_list.reduce((acc, cur) => acc.concat(cur), []);
+	const one_all_each_list = my_fetch_list.reduce((acc, cur) => acc.concat(cur), []);
+	// one_all_each_listからmy_listを取り出す
+	const my_list = one_all_each_list.map((web_data) => JSON.parse(web_data.data_json_str)['data1']);
+	// each_list.map((item) => JSON.parse(item.data_json_str)['data1']));
+	// my_listを一つのlistにまとめる
+	const all_my_list = my_list.reduce((acc, cur) => acc.concat(cur), []);
+
+	console.log(
+my_fetch_list,
+one_all_each_list,
+my_list,
+all_my_list,
+	);
+	// listの全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
+	all_my_list.forEach((item, idx) => {
+		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
+	});
+}
 
 // idを指定してcheckを切り替え
 const check_fn = (idx) => {
 	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
 	if(list[idx]['check'] === true){
-		delete_event(list[idx]['check_date']);
 		list[idx]['check'] = false;
 		list[idx]['check_date'] = new Date();
 		return;
@@ -175,7 +212,6 @@ const check_fn = (idx) => {
 
 	if(list[idx]['check'] === false){
 		list[idx]['check_date'] = new Date();
-		add_event(list[idx]['text'], list[idx]['check_date']);
 		list[idx]['check'] = true;
 	};
 	// data_id_from_onlineがnullでなければ
