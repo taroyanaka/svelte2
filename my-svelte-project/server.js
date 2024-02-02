@@ -5,7 +5,7 @@ const test_mode = () => true;
 import validator from 'validator';
 // import { isURL } from 'validator';
 import pkg from 'validator';
-const { isURL } = pkg;
+const { isURL, isISO8601 } = pkg;
 // const express = require('express');
 import express from 'express';
 // const sqlite = require('better-sqlite3');
@@ -1087,10 +1087,8 @@ const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形�
                     url_check(V.link);
                     // checkがBooleanでない場合はエラー
                     typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
-                    // check_dateがDateでない場合はエラー
-                    // console.log(V.check_date);
-                    // console.log(typeof V.check_date);
-                    // V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
+                    // check_dateがISO8601形式のDateでない場合はエラー
+                    isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
                 });
                 // Aryが空の場合はエラー
                 Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
