@@ -1094,7 +1094,7 @@ const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形�
                 Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
                 } catch (error) {
                 console.log(error);
-                ERROR_MESSAGE = error.message;
+                // ERROR_MESSAGE = error.message;
                 }
             };
     const Data_Json_Str = JSON.parse(req.body.data_json_str);
