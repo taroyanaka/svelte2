@@ -1,4 +1,27 @@
 <script>
+// text validation
+const text_item_validation_and_update = (Text, Update_Param) => {
+	try {
+	Update_Param.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null
+	Text = Update_Param;
+	ERROR_MESSAGE = "";
+	} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+	}
+};
+const link_item_validation_and_update = (Link, Update_Param) => {
+	try {
+	Update_Param.length > 0 ? url_check(Update_Param) : null;
+	Item = Update_Param;
+	ERROR_MESSAGE = "";
+	} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+	}
+};
+
+
 const all_event_check = () => {
 	// eventが既にある場合は全て削除
 	init_calendar();
@@ -32,13 +55,8 @@ const toggle_left_or_right_side = () => {
 		[is_show_left, is_show_right] = [true, true];
 	}
 };
-
 let is_calendar_visible = true;
 const toggle_calendar = () => is_calendar_visible = !is_calendar_visible;
-
-
-
-
 const all_calendar_fn = () => {
     let calendar_val = null;
     let all_event = null;
@@ -126,7 +144,7 @@ let dev_mode = false;
 let all_list_and_meta_data = [];
 
 let meta_data = {
-desc: "Best albums of all time of hard rock and heavy metal, 10",
+	desc: "Best albums of all time of hard rock and heavy metal, 10",
 };
 // data_aにlist
 // data_bにmeta_data
@@ -178,31 +196,22 @@ import { isURL } from 'validator';
 $: {
 console.log(list, "listが更新されたらhtmlを更新する");
 
-// update_dataはdougnutのdataを更新する関数
-// update_data();
 }
 
 
 // idを指定してcheckを切り替え
 const check_fn = (idx) => {
-	// list[idx]['check']がtrueならdelete_event()を実行して早期リターン
 	if(list[idx]['check'] === true){
-		// delete_event(list[idx]['check_date']);
 		delete_event((new Date(list[idx]['check_date'])));
 		list[idx]['check'] = false;
-		// list[idx]['check_date'] = new Date();
 		list[idx]['check_date'] = (new Date()).toISOString();
 		return;
 	};
-
 	if(list[idx]['check'] === false){
-		// list[idx]['check_date'] = new Date();
 		list[idx]['check_date'] = (new Date()).toISOString();
-		// add_event(list[idx]['text'], list[idx]['check_date']);
 		add_event(list[idx]['text'], (new Date(list[idx]['check_date'])));
 		list[idx]['check'] = true;
 	};
-	// data_id_from_onlineがnullでなければ
 	if(data_id_from_online !== null){
 		console.log("data_id_from_online", data_id_from_online);
 		insert_or_update_link(data_id_from_online);
@@ -213,7 +222,18 @@ const check_fn = (idx) => {
 // const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
 const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: (new Date()).toISOString() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => list = [...list, new_list_obj(new_text, list.length)];
+const add_list = () => {
+	try {
+		new_text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
+		// urlは空でも良い。だが、空でない場合はurl_check関数でチェック
+		new_link.length > 0 ? url_check(new_link) : null;
+		list = [...list, new_list_obj(new_text, list.length)]
+	} catch (error) {
+		console.log(error);
+		ERROR_MESSAGE = error.message;		
+	}
+
+};
 const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
 const delete_list = (idx) => list = [...list.slice(0, idx), ...list.slice(idx + 1)];
 // checkしたlistのindexの配列を返す関数
@@ -226,8 +246,6 @@ const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形�
 // {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
 const list_validation = (Ary) => {
 	try {
-	// Aryが配列でない場合はエラー
-	Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
 	Ary.forEach((V, I) => {
 		// idが整数でない場合はエラー
 		typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
@@ -240,14 +258,21 @@ const list_validation = (Ary) => {
 		// checkがBooleanでない場合はエラー
 		typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
 		// check_dateがDateでない場合はエラー
-		V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
+		// V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
+		// check_dateがISO8601形式のDateでない場合はエラー
+		isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
+
 	});
 	// Aryが空の場合はエラー
 	Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
+		// Aryが配列でない場合はエラー
+		Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
+
 	} catch (error) {
 	console.log(error);
 	ERROR_MESSAGE = error.message;
 	}
+
 };
 
 
@@ -294,6 +319,7 @@ onMount(async () => {
 	} catch (error) {
 		console.log(error);		
 	}
+
 });	
 afterUpdate(async () => {
 	try {
@@ -304,6 +330,7 @@ afterUpdate(async () => {
 	} catch (error) {
 		console.log(error);		
 	}
+
 });
 
 
@@ -897,17 +924,17 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <button on:click={() => test_for_TAG({})}>test_for_TAG</button>
 <button on:click={() => list_validation({})}>list_validation</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
-<button on:click={toggle_calendar}>toggle_calendar</button>
 
 
 
 <div class="core">
-<div class={is_show_left ? '' : 'hidden'}>
-<div class="left_side">
+	<div class={is_show_left ? '' : 'hidden'}>
+	<div class="left_side">
+		ERROR_MESSAGE: {ERROR_MESSAGE}
+		<button on:click={toggle_calendar}>toggle_calendar</button>
 		{data_id_from_online}
 		<button on:click={() => add_event()}>add_event</button>
 		<button on:click={() => show_event()}>show_event</button>
-
 		<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
 		<span>{all_event}</span>
 		<span>{calendar_val}</span>
@@ -918,52 +945,49 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		</div>
 		{/if}
 
-
-
-<!-- button -->
-	<!-- edit_modeのon/offのラジオ -->
-	edit_mode: 
-	<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
-	<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
-	<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
-
-	<button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
-	<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
-	<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
-
-	<div>desc: {meta_data.desc}</div>
-	<!-- edit meta_data.desc only edit mode -->
-	{#if edit_mode}
-		<input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} />
-	{/if}
-
-
-	<ul>
-		<!-- eachでlist -->
+		<div class="list">
+		edit_mode: 
+		<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
+		<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
+		<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
+		<button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
+		<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
+		<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
+		<div>desc: {meta_data.desc}</div>
+		{#if edit_mode}
+			<input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} />
+		{/if}
+		<ul>
 		{#each list as item, idx}
-			<li class="list-group-item" style="background-color: {item.check ? 'gray' : ''}">
-				<span>{idx}</span>
-				<a href={item.link}>{item.text}</a>
-<span>{item.check}</span>
-<span>{item.check_date}</span>
-				<!-- edit_modeのon/offで表示を切り替える -->
-				{#if edit_mode}
-					<input type="text" value={item.text} on:input={(e) => item.text = e.target.value} />
-<input type="url" value={item.link} on:input={(e) => item.link = e.target.value} />
-					<button on:click={() => insert_list(idx)}>insert_list</button>
-					<button on:click={() => delete_list(idx)}>delete_list</button>
-				{/if}
-<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
-			</li>
+		<li class="list-group-item" style="background-color: {item.check ? 'gray' : ''}">
+			<span>{idx}</span>
+			<a href={item.link}>{item.text}</a>
+			<span>{item.check}</span>
+			<span>{item.check_date}</span>
+			{#if edit_mode}
+				<input type="text"
+					minlength="1" maxlength="20"
+					required
+					value={item.text} on:input={(e) => text_item_validation_and_update(item.text, e.target.value) } />
+				<input type="url" 
+					pattern="https?://.+"
+					value={item.link} on:input={(e) => link_item_validation_and_update(item.link, e.target.value) } />
+				<button on:click={() => insert_list(idx)}>insert_list</button>
+				<button on:click={() => delete_list(idx)}>delete_list</button>
+			{/if}
+			<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
+		</li>
 		{/each}
-	</ul>
-	<input type="text" value={new_text} on:input={(e) => new_text = e.target.value} />
-	<input type="url" value={new_link} on:input={(e) => new_link = e.target.value} />
-	<button on:click={() => add_list()}>add</button>
-</div>
-</div>
+		</ul>
+		<input type="text" minlength="1" maxlength="20" required value={new_text} on:input={(e) => new_text = e.target.value} />
+		<!-- <input type="text" value={new_text} on:input={(e) => new_text = e.target.value} /> -->
+		<input type="url" value={new_link} on:input={(e) => new_link = e.target.value} placeholder="https://example.com" pattern="https?://.+">
+		<!-- <input type="url" value={new_link} on:input={(e) => new_link = e.target.value} /> -->
+		<button on:click={() => add_list()}>add</button>
+		</div>
 
-
+	</div>
+	</div>
 
 	{#if dev_mode === false}
 <!-- <div class={is_only_one_side_open === 'left' ? '' : 'hidden'}> -->
@@ -1166,7 +1190,8 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 .hidden {
     display: none;
 }
-
+input:invalid {
+  border: red solid 3px;
+  background-color: red !important;
+}
 </style>
-	
-	
