@@ -20,20 +20,21 @@ const check_fn = (idx) => {
 };
 // 最大のid+1(listが空の時は0)
 // const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
-const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: (new Date()).toISOString() });
+const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
 const add_list = () => {
 try {
 	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
-	all_data_list_validation_fn(old_all_data_list);
-	all_data_list = [
+	const new_all_data_list = [
 		...old_all_data_list, 
 		{
 			data_id_from_online: null,
 			meta_data: {desc: "new_desc"},
-			list: [new_list_obj("foo_bar", old_all_data_list.length)]
+			list: [new_list_obj({Text: NEW_TEXT, Link: "https://google.com", INDEX: old_all_data_list.length})],
 		}
 	];
+	all_data_list_validation_fn(new_all_data_list);
+	all_data_list = new_all_data_list;
 	console.log("add_list success!!");
 } catch (error) {
 	console.log(error);
@@ -328,8 +329,8 @@ let meta_data = {
 
 let list = [];
 let edit_mode = false;
-let new_text = 'text';
-let new_link = 'https://google.com';
+let NEW_TEXT = 'text';
+let NEW_LINK = 'https://google.com';
 
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 let hello_fetch_data = [];
@@ -1015,14 +1016,14 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 
 
 
-<!-- {#each all_data_list as outer_list, outer_idx} -->
+{#each all_data_list as outer_list, outer_idx}
 		<div class="list">
 		edit_mode: 
 		<input type="radio" class="edit_mode" id="edit_mode_on" name="edit_mode" value="on" on:change={() => edit_mode = true} checked={edit_mode} />
 		<input type="radio" class="edit_mode" id="edit_mode_off" name="edit_mode" value="off" on:change={() => edit_mode = false} checked={!edit_mode} />
-		<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
-<button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button>
-		<button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
+		<!-- <button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button> -->
+<button on:click={() => insert_or_update_link()} class="insert_or_update_link">insert_or_update_link</button>
+		<!-- <button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button> -->
 <button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
 		<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
 		<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
@@ -1032,8 +1033,8 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} />
 		{/if}
 		<ul>
-		{#each list as item, idx}
-<!-- {#each outer_list[all_data_list_INDEX]['list'] as item, idx} -->
+		<!-- {#each list as item, idx} -->
+{#each outer_list[all_data_list_INDEX]['list'] as item, idx}
 		<li class="list-group-item" style="background-color: {item.check ? 'gray' : ''}">
 			<span>{idx}</span>
 			<a href={item.link}>{item.text}</a>
@@ -1043,25 +1044,24 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 				<input type="text"
 					minlength="1" maxlength="20"
 					required
-value={item.text} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "text", Edit_New_Text: e.target.value, All_Data_List_Idx: 0, List_Idx: idx}) } />
+					value={item.text} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "text", Edit_New_Text: e.target.value, All_Data_List_Idx: all_data_list_INDEX, List_Idx: idx}) } />
 				<input type="url" 
 					pattern="https?://.+"
-value={item.link} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "link", Edit_New_Link: e.target.value, All_Data_List_Idx: 0, List_Idx: idx}) } />
+					value={item.link} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "link", Edit_New_Link: e.target.value, All_Data_List_Idx: all_data_list_INDEX, List_Idx: idx}) } />
 				<!-- <button on:click={() => insert_list(idx)}>insert_list</button> -->
-<button on:click={() => insert_list({All_Data_List_Idx: 0, List_Idx: idx})}>insert_list</button>
-<button on:click={() => delete_list({All_Data_List_Idx: 0, List_Idx: idx})}>delete_list</button>
+				<button on:click={() => insert_list({All_Data_List_Idx: all_data_list_INDEX, List_Idx: idx})}>insert_list</button>
+				<button on:click={() => delete_list({All_Data_List_Idx: all_data_list_INDEX, List_Idx: idx})}>delete_list</button>
 			{/if}
 			<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
 		</li>
 		{/each}
 		</ul>
-<input type="text" minlength="1" maxlength="20" required value={new_text} on:input={(e) => new_text = e.target.value} />
-		<!-- <input type="text" value={new_text} on:input={(e) => new_text = e.target.value} /> -->
-<input type="url" value={new_link} on:input={(e) => new_link = e.target.value} placeholder="https://example.com" pattern="https?://.+">
-		<!-- <input type="url" value={new_link} on:input={(e) => new_link = e.target.value} /> -->
+		<input type="text" minlength="1" maxlength="20" required value={NEW_TEXT} on:input={(e) => NEW_TEXT = e.target.value} />
+		<input type="url" value={NEW_LINK} on:input={(e) => NEW_LINK = e.target.value} placeholder="https://example.com" pattern="https?://.+">
+		<!-- <input type="url" value={NEW_LINK} on:input={(e) => NEW_LINK = e.target.value} /> -->
 		<button on:click={() => add_list()}>add_list</button>
 		</div>
-<!-- {/each} -->
+{/each}
 
 
 
