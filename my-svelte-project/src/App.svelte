@@ -1,26 +1,201 @@
 <script>
-// text validation
-const text_item_validation_and_update = (Text, Update_Param) => {
-	try {
-	Update_Param.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null
-	Text = Update_Param;
-	ERROR_MESSAGE = "";
-	} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;
+// idを指定してcheckを切り替え
+const check_fn = (idx) => {
+	if(list[idx]['check'] === true){
+		delete_event((new Date(list[idx]['check_date'])));
+		list[idx]['check'] = false;
+		list[idx]['check_date'] = (new Date()).toISOString();
+		return;
+	};
+	if(list[idx]['check'] === false){
+		list[idx]['check_date'] = (new Date()).toISOString();
+		add_event(list[idx]['text'], (new Date(list[idx]['check_date'])));
+		list[idx]['check'] = true;
+	};
+	if(data_id_from_online !== null){
+		console.log("data_id_from_online", data_id_from_online);
+		insert_or_update_link(data_id_from_online);
 	}
+
 };
-const link_item_validation_and_update = (Link, Update_Param) => {
-	try {
-	Update_Param.length > 0 ? url_check(Update_Param) : null;
-	Item = Update_Param;
-	ERROR_MESSAGE = "";
-	} catch (error) {
+// 最大のid+1(listが空の時は0)
+// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
+const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: (new Date()).toISOString() });
+// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
+const add_list = () => {
+try {
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	all_data_list_validation_fn(old_all_data_list);
+	all_data_list = [
+		...old_all_data_list, 
+		{
+			data_id_from_online: null,
+			meta_data: {desc: "new_desc"},
+			list: [new_list_obj("foo_bar", old_all_data_list.length)]
+		}
+	];
+	console.log("add_list success!!");
+} catch (error) {
 	console.log(error);
-	ERROR_MESSAGE = error.message;
-	}
+	ERROR_MESSAGE = error.message;		
+}
+};
+const insert_list = ({All_Data_List_Idx=0, List_Idx=0}) => {
+try {
+	All_Data_List_Idx = All_Data_List_Idx === null ? 0 : All_Data_List_Idx;
+	List_Idx = List_Idx === null ? 0 : List_Idx;
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	all_data_list_validation_fn(old_all_data_list);
+	all_data_list[All_Data_List_Idx]['list'] = [
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(0, List_Idx),
+		new_list_obj("foo_bar", List_Idx),
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(List_Idx)
+	];
+	console.log("insert_list success!!");
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;		
+}
 };
 
+const delete_list = ({All_Data_List_Idx=0, List_Idx=0}) => {
+try {
+	All_Data_List_Idx = All_Data_List_Idx === null ? 0 : All_Data_List_Idx;
+	List_Idx = List_Idx === null ? 0 : List_Idx;
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	all_data_list_validation_fn(old_all_data_list);
+	all_data_list[All_Data_List_Idx]['list'] = [
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(0, List_Idx),
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(List_Idx + 1)
+	];
+	console.log("delete_list success!!");
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;		
+}
+};
+
+// checkしたlistのindexの配列を返す関数
+const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
+
+// StrをisURLでチェックしてtrueならそのまま返す関数
+const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
+
+
+const init = (item, From_Online, User_Name) => {
+	// calendarの初期化
+	init_calendar();
+	list = JSON.parse(item.data_json_str)['data1'];
+	// listのcheck_dateをISO 8601からDateに変換
+	// list = list.map((item) => ({...item, check_date: new Date(item.check_date)}));
+	list = list.map((item) => ({ ...item, check_date: (new Date(item.check_date)).toISOString() }));
+
+	data_id_from_online = item.id;
+	meta_data.desc = 'foo_bar_buz';
+
+	if(From_Online){
+		// listからcalendarにイベントを追加
+		list.forEach((V, IDX)=>{
+			if(V.check === true){
+				add_event(V.text, V.check_date);
+			}
+		});
+
+		// JSON.parse(item.data_json_str)['data1'];
+		console.log("NAME === User_Name", NAME === User_Name);
+		// console.log("uncheck_list", uncheck_list());
+		// NAMEとUser_Nameが一致する場合は何もせず、
+		// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
+		NAME === User_Name ? null : list = uncheck_list();
+		return;
+	}
+	list.forEach((V, IDX)=>{
+		list = [...list, new_list_obj(V, IDX)];
+	});
+};
+
+let all_data_list = [];
+const all_data_list_sample = [
+	{
+		"data_id_from_online": null,
+		"meta_data": {
+			"desc": "Best albums of all time of hard rock and heavy metal, 10"
+		},
+		"list": [
+			{
+				"id": 0,
+				"text": "High Voltage: AC/DC",
+				"link": "https://google.com",
+				"check": true,
+				"check_date": "2024-01-28T07:19:52.122Z"
+			},
+			{
+				"id": 1,
+				"text": "Led Zeppelin IV: Led Zeppelin",
+				"link": "https://google.com",
+				"check": true,
+				"check_date": "2024-01-28T07:19:52.947Z"
+			},
+		]
+	},
+];
+const all_data_list_validation_fn = (All_Data_List) =>{
+try {
+	// "data_id_from_online": 整数かnull
+	// "meta_data": {desc: 1文字以上100文字以下の文字列}
+	// "list": 配列{ id: 整数で連番。最初の要素は0, text: 1文字以上100文字以下の文字列, link: URL文字列, check: Boolean, check_date: ISO8601形式のDate文字列}
+	// "list"が空の場合はエラー
+	const check_data_id_from_online = (Data_id_from_online) => {
+		typeof Data_id_from_online === 'number' || Data_id_from_online === null ? null : (()=>{throw new Error('data_id_from_onlineが整数かnullでない場合はエラー')})();
+	};
+	const check_meta_data = (Meta_Data) => {
+		typeof Meta_Data.desc === 'string' && Meta_Data.desc.length > 0 && Meta_Data.desc.length < 101 ? null : (()=>{throw new Error('meta_dataが1文字以上100文字以下の文字列でない場合はエラー')})();
+	};
+	const check_list = (List) => {
+		// Listが配列であることを確認
+		Array.isArray(List) ? null : (()=>{throw new Error('Listが配列でない場合はエラー')})();
+		List.length > 0 ? null : (()=>{throw new Error('listが空の場合はエラー')})();
+		// item.idが連番であることを確認
+		List.forEach((item, idx) => {
+			// idが整数で連番。最初の要素は0
+			item.id === idx ? null : (()=>{throw new Error('idが整数で連番。最初の要素は0でない場合はエラー')})();
+			// textが1文字以上100文字以下の文字列
+			item.text.length > 0 && item.text.length < 101 ? null : (()=>{throw new Error('textが1文字以上100文字以下の文字列でない場合はエラー')})();
+			// linkがURL文字列
+			isURL(item.link) ? null : (()=>{throw new Error('linkがURL文字列でない場合はエラー')})();
+			// checkがBoolean
+			typeof item.check === 'boolean' ? null : (()=>{throw new Error('checkがBooleanでない場合はエラー')})();
+			// check_dateがISO8601形式のDate文字列
+			isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
+		});
+	};
+	// 全てのcheck関数を実行
+	check_data_id_from_online(All_Data_List.data_id_from_online);
+	check_meta_data(All_Data_List.meta_data);
+	check_list(All_Data_List.list);
+	console.log("all_data_list_validation_fn success!!");
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+}
+};
+
+// encodeURIComponent
+// decodeURIComponent
+
+// text validation
+const any_item_validation_and_update = ({Target_Data_Type="text", Edit_New_Text="new_text", All_Data_List_Idx=0, List_Idx=0}) => {
+	try {
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	old_all_data_list[All_Data_List_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
+	all_data_list_validation_fn(old_all_data_list[All_Data_List_Idx]);
+	all_data_list = old_all_data_list;
+	ERROR_MESSAGE = "";
+	} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+	}
+};
 
 const all_event_check = () => {
 	// eventが既にある場合は全て削除
@@ -199,115 +374,6 @@ console.log(list, "listが更新されたらhtmlを更新する");
 }
 
 
-// idを指定してcheckを切り替え
-const check_fn = (idx) => {
-	if(list[idx]['check'] === true){
-		delete_event((new Date(list[idx]['check_date'])));
-		list[idx]['check'] = false;
-		list[idx]['check_date'] = (new Date()).toISOString();
-		return;
-	};
-	if(list[idx]['check'] === false){
-		list[idx]['check_date'] = (new Date()).toISOString();
-		add_event(list[idx]['text'], (new Date(list[idx]['check_date'])));
-		list[idx]['check'] = true;
-	};
-	if(data_id_from_online !== null){
-		console.log("data_id_from_online", data_id_from_online);
-		insert_or_update_link(data_id_from_online);
-	}
-
-};
-// 最大のid+1(listが空の時は0)
-// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
-const new_list_obj = (Text="foo_bar", INDEX) => ({ id: INDEX, text: Text, link: 'https://google.com', check: false, check_date: (new Date()).toISOString() });
-// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => {
-	try {
-		new_text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
-		// urlは空でも良い。だが、空でない場合はurl_check関数でチェック
-		new_link.length > 0 ? url_check(new_link) : null;
-		list = [...list, new_list_obj(new_text, list.length)]
-	} catch (error) {
-		console.log(error);
-		ERROR_MESSAGE = error.message;		
-	}
-
-};
-const insert_list = (idx) => list = [...list.slice(0, idx), new_list_obj("foo_bar", list.length), ...list.slice(idx)];
-const delete_list = (idx) => list = [...list.slice(0, idx), ...list.slice(idx + 1)];
-// checkしたlistのindexの配列を返す関数
-const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
-
-// StrをisURLでチェックしてtrueならそのまま返す関数
-const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
-// listのvalidationの関数
-// 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
-// {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
-const list_validation = (Ary) => {
-	try {
-	Ary.forEach((V, I) => {
-		// idが整数でない場合はエラー
-		typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
-		// textが1文字以上でない場合はエラー
-		V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
-		// linkがURLでない場合はエラー
-		typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
-		// linkがURLでない場合はエラー
-		url_check(V.link);
-		// checkがBooleanでない場合はエラー
-		typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
-		// check_dateがDateでない場合はエラー
-		// V.check_date instanceof Date ? null : (()=>{throw new Error('check_dateがDateでない場合はエラー')})();
-		// check_dateがISO8601形式のDateでない場合はエラー
-		isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
-
-	});
-	// Aryが空の場合はエラー
-	Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
-		// Aryが配列でない場合はエラー
-		Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
-
-	} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;
-	}
-
-};
-
-
-const init = (item, From_Online, User_Name) => {
-	// calendarの初期化
-	init_calendar();
-	list = JSON.parse(item.data_json_str)['data1'];
-	// listのcheck_dateをISO 8601からDateに変換
-	// list = list.map((item) => ({...item, check_date: new Date(item.check_date)}));
-	list = list.map((item) => ({ ...item, check_date: (new Date(item.check_date)).toISOString() }));
-
-	data_id_from_online = item.id;
-	meta_data.desc = 'foo_bar_buz';
-
-	if(From_Online){
-		// listからcalendarにイベントを追加
-		list.forEach((V, IDX)=>{
-			if(V.check === true){
-				add_event(V.text, V.check_date);
-			}
-		});
-
-		// JSON.parse(item.data_json_str)['data1'];
-		console.log("NAME === User_Name", NAME === User_Name);
-		// console.log("uncheck_list", uncheck_list());
-		// NAMEとUser_Nameが一致する場合は何もせず、
-		// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
-		NAME === User_Name ? null : list = uncheck_list();
-		return;
-	}
-	list.forEach((V, IDX)=>{
-		list = [...list, new_list_obj(V, IDX)];
-	});
-};
-
 
 // onMount(fetch_hello({}));
 onMount(async () => {
@@ -436,7 +502,6 @@ const all_fetch_fn = ()  => {
 		const check_mode = false;
 		if(check_mode===true){list = uncheck_list};
 		// listをlist_validation関数でチェック
-		list_validation(list);
 		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
 		await response_handling(RESPONSE);
@@ -922,7 +987,6 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <button on:click={() => all_event_check()}>all_event_check</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 <button on:click={() => test_for_TAG({})}>test_for_TAG</button>
-<button on:click={() => list_validation({})}>list_validation</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
 
 
@@ -968,12 +1032,13 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 				<input type="text"
 					minlength="1" maxlength="20"
 					required
-					value={item.text} on:input={(e) => text_item_validation_and_update(item.text, e.target.value) } />
+					value={item.text} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "text", Edit_New_Text: e.target.value, All_Data_List_Idx: 0, List_Idx: idx}) } />
 				<input type="url" 
 					pattern="https?://.+"
-					value={item.link} on:input={(e) => link_item_validation_and_update(item.link, e.target.value) } />
-				<button on:click={() => insert_list(idx)}>insert_list</button>
-				<button on:click={() => delete_list(idx)}>delete_list</button>
+					value={item.link} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "link", Edit_New_Link: e.target.value, All_Data_List_Idx: 0, List_Idx: idx}) } />
+				<!-- <button on:click={() => insert_list(idx)}>insert_list</button> -->
+				<button on:click={() => insert_list({All_Data_List_Idx: 0, List_Idx: idx})}>insert_list</button>
+				<button on:click={() => delete_list({All_Data_List_Idx: 0, List_Idx: idx})}>delete_list</button>
 			{/if}
 			<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
 		</li>
@@ -983,7 +1048,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		<!-- <input type="text" value={new_text} on:input={(e) => new_text = e.target.value} /> -->
 		<input type="url" value={new_link} on:input={(e) => new_link = e.target.value} placeholder="https://example.com" pattern="https?://.+">
 		<!-- <input type="url" value={new_link} on:input={(e) => new_link = e.target.value} /> -->
-		<button on:click={() => add_list()}>add</button>
+		<button on:click={() => add_list()}>add_list</button>
 		</div>
 
 	</div>
