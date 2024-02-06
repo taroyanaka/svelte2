@@ -1,4 +1,6 @@
 <script>
+let hello_fetch_data = [];
+
 // idを指定してcheckを切り替え
 const check_fn = (idx) => {
 	if(list[idx]['check'] === true){
@@ -83,35 +85,15 @@ const checked_list_index = () => list.map((item, idx) => item.check ? idx : null
 const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
 
 
-const init = (item, From_Online, User_Name) => {
+const init = (item, User_Name) => {
 	// calendarの初期化
 	init_calendar();
-	list = JSON.parse(item.data_json_str)['data1'];
-	// listのcheck_dateをISO 8601からDateに変換
-	// list = list.map((item) => ({...item, check_date: new Date(item.check_date)}));
-	list = list.map((item) => ({ ...item, check_date: (new Date(item.check_date)).toISOString() }));
-
-	data_id_from_online = item.id;
-	meta_data.desc = 'foo_bar_buz';
-
-	if(From_Online){
-		// listからcalendarにイベントを追加
-		list.forEach((V, IDX)=>{
-			if(V.check === true){
-				add_event(V.text, V.check_date);
-			}
-		});
-
-		// JSON.parse(item.data_json_str)['data1'];
-		console.log("NAME === User_Name", NAME === User_Name);
-		// console.log("uncheck_list", uncheck_list());
-		// NAMEとUser_Nameが一致する場合は何もせず、
-		// NAMEとUser_Nameが一致しない場合は、uncheck_list()でリストのcheckとcheck_dateを初期化する
-		NAME === User_Name ? null : list = uncheck_list();
-		return;
-	}
-	list.forEach((V, IDX)=>{
-		list = [...list, new_list_obj(V, IDX)];
+	all_data_list = all_data_list_sample;
+	all_data_list[all_data_list_INDEX]['list'].forEach((V, IDX)=>{
+		if(V.check === true){
+			add_event(V.text, V.check_date);
+		}
+		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
 	});
 };
 
@@ -329,41 +311,9 @@ let meta_data = {
 
 let list = [];
 let edit_mode = false;
+
 let NEW_TEXT = 'text';
 let NEW_LINK = 'https://google.com';
-
-// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
-let hello_fetch_data = [];
-
-// let NAME = 'user1';
-let NAME = 'user2';
-let TEST_MODE = 'TEST_MODE';
-// let TEST_MODE = 'PRODUCTION_MODE';
-// let PASSWORD = 'user_pass1';
-let PASSWORD = 'user_pass2';
-let DATA1 = 'data1';
-let DATA2 = 'data2';
-let COMMENT = 'comment1';
-let COMMENT_REPLY = 'reply1';
-let TAG = 'tag1';
-let ALL_TAGS = [];
-let RESPONSE;
-let TAG_VAL = "";
-
-
-let ORDER_BY = 'ASC';
-let ORDER_BY_COLUMN = 'id';
-let REQ_TAG = '';
-let USER = '';
-
-let ERROR_MESSAGE = "";
-let SUCCESS_MESSAGE = '';
-let ERROR_MESSAGE_STACK = [];
-let SUCCESS_MESSAGE_STACK = [];
-let COLLECT_VALUE = [{'value': 0},{'value2': 1}];
-
-// let DOMAIN_NAME = 'https://spectrum-whip-sulfur.glitch.me/';
-const DOMAIN_NAME = 'http://localhost:8000/';
 
 
 import { onMount } from 'svelte';
@@ -402,6 +352,57 @@ afterUpdate(async () => {
 });
 
 
+const all_web_prop = () => {
+	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
+// let NAME = 'user1';
+let NAME = 'user2';
+let TEST_MODE = 'TEST_MODE';
+// let TEST_MODE = 'PRODUCTION_MODE';
+// let PASSWORD = 'user_pass1';
+let PASSWORD = 'user_pass2';
+let DATA1 = 'data1';
+let DATA2 = 'data2';
+let COMMENT = 'comment1';
+let COMMENT_REPLY = 'reply1';
+let TAG = 'tag1';
+let ALL_TAGS = [];
+let RESPONSE;
+let TAG_VAL = "";
+let ORDER_BY = 'ASC';
+let ORDER_BY_COLUMN = 'id';
+let REQ_TAG = '';
+let USER = '';
+let ERROR_MESSAGE = "";
+let SUCCESS_MESSAGE = '';
+let ERROR_MESSAGE_STACK = [];
+let SUCCESS_MESSAGE_STACK = [];
+let FETCH_TEST_DATA = [{'value': 0},{'value2': 1}];
+// let DOMAIN_NAME = 'https://spectrum-whip-sulfur.glitch.me/';
+const DOMAIN_NAME = 'http://localhost:8000/';
+return {
+	NAME,
+	PASSWORD,
+	DATA1,
+	DATA2,
+	COMMENT,
+	COMMENT_REPLY,
+	TAG,
+	TAG_VAL,
+	ORDER_BY,
+	ORDER_BY_COLUMN,
+	REQ_TAG,
+	USER,
+	ERROR_MESSAGE,
+	SUCCESS_MESSAGE,
+	ERROR_MESSAGE_STACK,
+	SUCCESS_MESSAGE_STACK,
+	FETCH_TEST_DATA,
+	ALL_TAGS,
+	DOMAIN_NAME,
+};
+}
+const all_prop = all_web_prop();
+let {NAME, PASSWORD, DATA1, DATA2, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_prop;
 
 // コードの見通しを良くするために(エディタのFold機能のために)、all_fetch_fnとall_fetchにより、関数を全てまとめてオブジェクトにして返す
 // 1.all_fetch_fnを定義して、関数を全てまとめる 2.all_fetch_fn()を実行して全ての関数が含まれたオブジェクトを取得 3.all_fetchの全ての関数を取得
@@ -482,11 +483,6 @@ const all_fetch_fn = ()  => {
 		}
 	}
 
-	const uncheck_list = () => {
-		let res = list.map((item) => ({...item, check: false, check_date: (new Date()).toISOString() }))
-		// console.log(res);
-		return res;
-	};
 	// URLの配列の文字列から始まる場合はtrueを返す関数を1行で
 	// const is_include_WHITE_LIST_URL = (target_url_str, WHITE_LIST_URL_ARRAY) => WHITE_LIST_URL_ARRAY.some((WHITE_LIST_URL) => target_url_str.startsWith(WHITE_LIST_URL));
 	let hoge = null;
@@ -566,7 +562,7 @@ const all_fetch_fn = ()  => {
 	const fetch_get_collect_value_for_test = async () => {
 		try {
 		const RESULT_OF_TEST = await (await fetch(DOMAIN_NAME+'get_collect_value_for_test', get_POST_object({ name: NAME, password: PASSWORD }))).json();
-		COLLECT_VALUE = RESULT_OF_TEST.message;
+		FETCH_TEST_DATA = RESULT_OF_TEST.message;
 		} catch (error) {
 		console.log(error);
 		}
@@ -1034,7 +1030,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		{/if}
 		<ul>
 		<!-- {#each list as item, idx} -->
-{#each outer_list[all_data_list_INDEX]['list'] as item, idx}
+{#each outer_list['list'] as item, idx}
 		<li class="list-group-item" style="background-color: {item.check ? 'gray' : ''}">
 			<span>{idx}</span>
 			<a href={item.link}>{item.text}</a>
@@ -1120,7 +1116,6 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <button on:click={() => init(
 	// JSON.parse(hello_fetch_data[0]['data_json_str'])['data1'],
 	item,
-	true,
 	// username
 	item['username'],
 	)}>init_from_online</button>
