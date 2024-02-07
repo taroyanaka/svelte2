@@ -1,104 +1,22 @@
 <script>
 let hello_fetch_data = [];
-
-// idを指定してcheckを切り替え
-const check_fn = (idx) => {
-	if(list[idx]['check'] === true){
-		delete_event((new Date(list[idx]['check_date'])));
-		list[idx]['check'] = false;
-		list[idx]['check_date'] = (new Date()).toISOString();
-		return;
-	};
-	if(list[idx]['check'] === false){
-		list[idx]['check_date'] = (new Date()).toISOString();
-		add_event(list[idx]['text'], (new Date(list[idx]['check_date'])));
-		list[idx]['check'] = true;
-	};
-	if(data_id_from_online !== null){
-		console.log("data_id_from_online", data_id_from_online);
-		insert_or_update_link(data_id_from_online);
-	}
-
-};
-// 最大のid+1(listが空の時は0)
-// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
-const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
-// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => {
-try {
-	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
-	const new_all_data_list = [
-		...old_all_data_list, 
-		{
-			data_id_from_online: null,
-			meta_data: {desc: "new_desc"},
-			list: [new_list_obj({Text: NEW_TEXT, Link: "https://google.com", INDEX: old_all_data_list.length})],
-		}
-	];
-	all_data_list_validation_fn(new_all_data_list);
-	all_data_list = new_all_data_list;
-	console.log("add_list success!!");
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;		
-}
-};
-const insert_list = ({All_Data_List_Idx=0, List_Idx=0}) => {
-try {
-	All_Data_List_Idx = All_Data_List_Idx === null ? 0 : All_Data_List_Idx;
-	List_Idx = List_Idx === null ? 0 : List_Idx;
-	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
-	all_data_list_validation_fn(old_all_data_list);
-	all_data_list[All_Data_List_Idx]['list'] = [
-		...old_all_data_list[All_Data_List_Idx]['list'].slice(0, List_Idx),
-		new_list_obj("foo_bar", List_Idx),
-		...old_all_data_list[All_Data_List_Idx]['list'].slice(List_Idx)
-	];
-	console.log("insert_list success!!");
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;		
-}
-};
-
-const delete_list = ({All_Data_List_Idx=0, List_Idx=0}) => {
-try {
-	All_Data_List_Idx = All_Data_List_Idx === null ? 0 : All_Data_List_Idx;
-	List_Idx = List_Idx === null ? 0 : List_Idx;
-	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
-	all_data_list_validation_fn(old_all_data_list);
-	all_data_list[All_Data_List_Idx]['list'] = [
-		...old_all_data_list[All_Data_List_Idx]['list'].slice(0, List_Idx),
-		...old_all_data_list[All_Data_List_Idx]['list'].slice(List_Idx + 1)
-	];
-	console.log("delete_list success!!");
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;		
-}
-};
-
-// checkしたlistのindexの配列を返す関数
-const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
-
-// StrをisURLでチェックしてtrueならそのまま返す関数
-const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
-
-
-const init = (item, User_Name) => {
-	// calendarの初期化
-	init_calendar();
-	all_data_list = all_data_list_sample;
-	all_data_list[all_data_list_INDEX]['list'].forEach((V, IDX)=>{
-		if(V.check === true){
-			add_event(V.text, V.check_date);
-		}
-		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
-	});
-};
-
+let data_id_from_online = null;
+// let dev_mode = true;
+let dev_mode = false;
+// 全てdata_aとdata_bを入れるlist
+let all_list_and_meta_data = [];
+// let meta_data = {
+// 	desc: "Best albums of all time of hard rock and heavy metal, 10",
+// };
+// data_aにlist
+// data_bにmeta_data
+// let list = [];
+let edit_mode = false;
+let NEW_TEXT = 'text';
+let NEW_LINK = 'https://google.com';
 let all_data_list_INDEX = 0;
 let all_data_list = [];
+
 const all_data_list_sample = [
 	{
 		"data_id_from_online": null,
@@ -123,6 +41,7 @@ const all_data_list_sample = [
 		]
 	},
 ];
+all_data_list = all_data_list_sample;
 const all_data_list_validation_fn = (All_Data_List) =>{
 try {
 	// "data_id_from_online": 整数かnull
@@ -150,20 +69,128 @@ try {
 			// checkがBoolean
 			typeof item.check === 'boolean' ? null : (()=>{throw new Error('checkがBooleanでない場合はエラー')})();
 			// check_dateがISO8601形式のDate文字列
-			isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
+			// isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
 		});
 	};
+	console.log(
+		"All_Data_List",
+		All_Data_List
+	)
+	console.log(
+		"All_Data_List.data_id_from_online",
+		All_Data_List.data_id_from_online
+	)
 	// 全てのcheck関数を実行
-	check_data_id_from_online(All_Data_List.data_id_from_online);
-	check_meta_data(All_Data_List.meta_data);
-	check_list(All_Data_List.list);
+	All_Data_List.forEach(All_Data=>{
+		check_data_id_from_online(All_Data.data_id_from_online);
+		check_meta_data(All_Data.meta_data);
+		check_list(All_Data.list);
+	});
+	// check_data_id_from_online(All_Data_List.data_id_from_online);
+	// check_meta_data(All_Data_List.meta_data);
+	// check_list(All_Data_List.list);
 	console.log("all_data_list_validation_fn success!!");
 } catch (error) {
 	console.log(error);
 	ERROR_MESSAGE = error.message;
 }
 };
+// left_sideかright_sideどちらかだけを表示するトグル関数
+let is_show_left = true;
+let is_show_right = true;
+let is_calendar_visible = true;
 
+
+
+// idを指定してcheckを切り替え
+const check_fn = (idx) => {
+	if(all_data_list[all_data_list_INDEX]['list'][idx]['check'] === true){
+		delete_event((new Date(all_data_list[all_data_list_INDEX]['list'][idx]['check_date'])));
+		all_data_list[all_data_list_INDEX]['list'][idx]['check'] = false;
+		all_data_list[all_data_list_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
+		return;
+	};
+	if(all_data_list[all_data_list_INDEX]['list'][idx]['check'] === false){
+		all_data_list[all_data_list_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
+		add_event(all_data_list[all_data_list_INDEX]['list'][idx]['text'], (new Date(all_data_list[all_data_list_INDEX]['list'][idx]['check_date'])));
+		all_data_list[all_data_list_INDEX]['list'][idx]['check'] = true;
+	};
+	if(data_id_from_online !== null){
+		console.log("data_id_from_online", data_id_from_online);
+		insert_or_update_link(data_id_from_online);
+	}
+
+};
+// 最大のid+1(listが空の時は0)
+// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
+const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
+// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
+const add_list = () => {
+try {
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	old_all_data_list[all_data_list_INDEX]['list'] = [
+		...old_all_data_list[all_data_list_INDEX]['list'],
+		new_list_obj({Text: NEW_TEXT, Link: NEW_LINK, INDEX: old_all_data_list[all_data_list_INDEX]['list'].length})
+	];
+	console.log(old_all_data_list);
+	all_data_list_validation_fn(old_all_data_list);
+	all_data_list = old_all_data_list;
+	console.log("add_list success!!");
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;		
+}
+};
+const insert_list = ({All_Data_List_Idx=0, List_Idx=0}) => {
+try {
+	All_Data_List_Idx = All_Data_List_Idx === null ? 0 : All_Data_List_Idx;
+	List_Idx = List_Idx === null ? 0 : List_Idx;
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	all_data_list_validation_fn(old_all_data_list);
+	all_data_list[All_Data_List_Idx]['list'] = [
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(0, List_Idx),
+		new_list_obj("foo_bar", List_Idx),
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(List_Idx)
+	];
+	console.log("insert_list success!!");
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;		
+}
+};
+const delete_list = ({All_Data_List_Idx=0, List_Idx=0}) => {
+try {
+	All_Data_List_Idx = All_Data_List_Idx === null ? 0 : All_Data_List_Idx;
+	List_Idx = List_Idx === null ? 0 : List_Idx;
+	const old_all_data_list = JSON.parse(JSON.stringify(all_data_list));
+	all_data_list_validation_fn(old_all_data_list);
+	all_data_list[All_Data_List_Idx]['list'] = [
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(0, List_Idx),
+		...old_all_data_list[All_Data_List_Idx]['list'].slice(List_Idx + 1)
+	];
+	console.log("delete_list success!!");
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;		
+}
+};
+// checkしたlistのindexの配列を返す関数
+// const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
+const checked_list_index = () => all_data_list[all_data_list_INDEX]['list'].map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
+// StrをisURLでチェックしてtrueならそのまま返す関数
+const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
+const init = (item, User_Name) => {
+	// calendarの初期化
+	init_calendar();
+	JSON.parse(item.data_json_str).data1.forEach((V) => {
+		if(V.check === true){
+			add_event(V.text, V.check_date);
+		}
+		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
+	});
+	all_data_list[0]['list'] = JSON.parse(item.data_json_str).data1;
+	all_data_list[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
+};
 // encodeURIComponent
 // decodeURIComponent
 
@@ -180,7 +207,6 @@ const any_item_validation_and_update = ({Target_Data_Type="text", Edit_New_Text=
 	ERROR_MESSAGE = error.message;
 	}
 };
-
 const all_event_check = () => {
 	// eventが既にある場合は全て削除
 	init_calendar();
@@ -200,10 +226,6 @@ const all_event_check = () => {
 		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
 	});
 }
-
-// left_sideかright_sideどちらかだけを表示するトグル関数
-let is_show_left = true;
-let is_show_right = true;
 const toggle_left_or_right_side = () => {
 	// is_show_leftとis_show_rightが両方true、どちらかだけがtrue、3つの状態がある
 	if (is_show_left && is_show_right) {
@@ -214,7 +236,6 @@ const toggle_left_or_right_side = () => {
 		[is_show_left, is_show_right] = [true, true];
 	}
 };
-let is_calendar_visible = true;
 const toggle_calendar = () => is_calendar_visible = !is_calendar_visible;
 const all_calendar_fn = () => {
     let calendar_val = null;
@@ -241,8 +262,6 @@ const all_calendar_fn = () => {
         all_event = events;
     }
     function add_event(Title="+", Date){
-        // let date = new Date();
-        // plus_day ? date.setDate(date.getDate() + plus_day) : null;
         calendar_val.addEvent({
             title: Title,
             allDay: false,
@@ -277,10 +296,6 @@ const all_calendar_fn = () => {
 }
 const all_calendar = all_calendar_fn();
 const {calendar_val,all_event,init_calendar,show_event,add_event,delete_event,} = all_calendar;
-
-
-
-
 // const obj = await app.$$.ctx;
 // const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
 // const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
@@ -289,44 +304,20 @@ const {calendar_val,all_event,init_calendar,show_event,add_event,delete_event,} 
 	
 // 空のリストを作る関数
 const make_new_list = ({Text='foo_bar', Link='https://google.com', Check=false, Check_date=((new Date()).toISOString())}) =>{
-	list = [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}];
-	meta_data = {desc: ''};
+	// list = [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}];
+	all_data_list_INDEX = all_data_list_INDEX.length === 0 ? 0 : all_data_list_INDEX + 1;
+	all_data_list[all_data_list_INDEX] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}]};
+	// all_data_list[all_data_list_INDEX]['meta_data'] = {desc: "new_desc"};
 	data_id_from_online = null;
 };
-
-let data_id_from_online = null;
-
-// let dev_mode = true;
-let dev_mode = false;
-
-// 全てdata_aとdata_bを入れるlist
-let all_list_and_meta_data = [];
-
-let meta_data = {
-	desc: "Best albums of all time of hard rock and heavy metal, 10",
-};
-// data_aにlist
-// data_bにmeta_data
-
-
-let list = [];
-let edit_mode = false;
-
-let NEW_TEXT = 'text';
-let NEW_LINK = 'https://google.com';
-
-
 import { onMount } from 'svelte';
 import { afterUpdate } from 'svelte';
 import { isURL } from 'validator';
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
 $: {
-console.log(list, "listが更新されたらhtmlを更新する");
+console.log(all_data_list, "listが更新されたらhtmlを更新する");
 
 }
-
-
-
 // onMount(fetch_hello({}));
 onMount(async () => {
 	try {
@@ -350,7 +341,6 @@ afterUpdate(async () => {
 	}
 
 });
-
 
 const all_web_prop = () => {
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
@@ -403,7 +393,6 @@ return {
 }
 const all_prop = all_web_prop();
 let {NAME, PASSWORD, DATA1, DATA2, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_prop;
-
 // コードの見通しを良くするために(エディタのFold機能のために)、all_fetch_fnとall_fetchにより、関数を全てまとめてオブジェクトにして返す
 // 1.all_fetch_fnを定義して、関数を全てまとめる 2.all_fetch_fn()を実行して全ての関数が含まれたオブジェクトを取得 3.all_fetchの全ての関数を取得
 const all_fetch_fn = ()  => {
@@ -414,12 +403,14 @@ const all_fetch_fn = ()  => {
 	const insert_or_update_link = async (Link_id) => {
 		try {
 			console.log(Link_id);
-			const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
+			// const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
+			// const DATA_JSON_STR = JSON.stringify({data1: all_data_list[all_data_list_INDEX]['list'], data2: meta_data});
+			const DATA_JSON_STR = JSON.stringify({data1: all_data_list[all_data_list_INDEX]['list'], data2: all_data_list[all_data_list_INDEX]['meta_data']});
 			console.log(DATA_JSON_STR);
 			// Link_idとuser_idが一致するものがある場合はupdateする
 			if(Link_id !== undefined  && Link_id !== null){
 				console.log('update');
-				console.log(list);
+				console.log(all_data_list[all_data_list_INDEX]['list']);
 				RESPONSE = await (await fetch(DOMAIN_NAME+'update_link', get_POST_object({ name: NAME, password: PASSWORD, link_id: Link_id, data_json_str: DATA_JSON_STR }))).json();
 				await response_handling(RESPONSE);
 				return;
@@ -493,14 +484,21 @@ const all_fetch_fn = ()  => {
 				const sample_data_json_str = sample_data === "sample1" ?
 					JSON.parse(`{"data1":[{"id":0,"text":"High Voltage: AC/DC","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.122Z"},{"id":1,"text":"Led Zeppelin IV: Led Zeppelin","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.947Z"},{"id":2,"text":"Appetite for Destruction: Guns N' Roses","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:54.374Z"},{"id":3,"text":"Master of Puppets: Metallica","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":4,"text":"Back in Black: AC/DC","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":5,"text":"Paranoid: Black Sabbath","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":6,"text":"The Dark Side of the Moon: Pink Floyd","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":7,"text":"Destroyer: KISS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":8,"text":"Rumours: Fleetwood Mac","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":9,"text":"Machine Head: Deep Purple","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}`) : 
 					JSON.parse(`{"data1":[{"id":0,"text":"Dark & Wild: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":1,"text":"The Red Summer: Red Velvet","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":2,"text":"WINGS: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":3,"text":"Reboot: Wonder Girls","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":4,"text":"Square Up: BLACKPINK","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":5,"text":"HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":6,"text":"EXODUS: EXO","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":7,"text":"Odd: SHINee","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":8,"text":"Flight Log: Turbulence: GOT7","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":9,"text":"Love Shot: EXO","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}`) ;
-				list = sample_data_json_str['data1'];
-				meta_data = sample_data_json_str['data2'];
+				all_data_list[all_data_list_INDEX]['list'] = sample_data_json_str['data1'];
+				all_data_list[all_data_list_INDEX]['meta_data'] = sample_data_json_str['data2'];
 			}
 		// listのcheckを全部falseにし、change_dateを現在時刻にする
 		const check_mode = false;
-		if(check_mode===true){list = uncheck_list};
+		// all_data_list[all_data_list_INDEX]['list']からcheckがtrueのものだけをuncheck_listにする
+		// if(check_mode===true){list = uncheck_list};
+		if(check_mode === true){
+			all_data_list[all_data_list_INDEX]['list'] = all_data_list[all_data_list_INDEX]['list'].map((item) => item.check === true ? {...item, check: false, check_date: (new Date()).toISOString()} : item);
+		};
 		// listをlist_validation関数でチェック
-		const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
+		const DATA_JSON_STR = JSON.stringify({
+			data1: all_data_list[all_data_list_INDEX]['list'],
+			data2: all_data_list[all_data_list_INDEX]['meta_data']
+		});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
 		await response_handling(RESPONSE);
 		} catch (error) {ERROR_MESSAGE = error.message;}
@@ -976,8 +974,6 @@ test_sample_exe5,
 };
 const all_test = all_test_fn();
 const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test;
-
-
 </script>
 
 
@@ -1023,10 +1019,11 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 <button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
 		<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
 		<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
-		<div>desc: {meta_data.desc}</div>
+		<!-- <div>desc: {meta_data.desc}</div> -->
+		<div>desc: {all_data_list[all_data_list_INDEX]['meta_data']['desc']}</div>
 		{#if edit_mode}
-			<input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} />
-<input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} />
+			<!-- <input type="text" value={meta_data.desc} on:input={(e) => meta_data.desc = e.target.value} /> -->
+<input type="text" value={all_data_list[all_data_list_INDEX]['meta_data']['desc']} on:input={(e) => all_data_list[all_data_list_INDEX]['meta_data']['desc'] = e.target.value} />
 		{/if}
 		<ul>
 		<!-- {#each list as item, idx} -->
@@ -1114,9 +1111,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 			<!-- <span>data1: {JSON.parse(item.data_json_str).data1}</span> -->
 <span>data1: {JSON.stringify(JSON.parse(item.data_json_str).data1)}</span>
 <button on:click={() => init(
-	// JSON.parse(hello_fetch_data[0]['data_json_str'])['data1'],
 	item,
-	// username
 	item['username'],
 	)}>init_from_online</button>
 {item.id}
