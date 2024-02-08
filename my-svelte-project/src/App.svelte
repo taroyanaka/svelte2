@@ -12,15 +12,11 @@ let ALL_DATA_LIST = [];
 let IS_SHOW_LEFT = true;
 let IS_SHOW_RIGHT = true;
 let IS_CALENDAR_VISIBLE = true;
-
-
 // const obj = await app.$$.ctx;
 // const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
 // const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
 // const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
 // await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
-
-
 const ALL_DATA_LIST_SAMPLE = [
 	{
 		"data_id_from_online": null,
@@ -46,7 +42,7 @@ const ALL_DATA_LIST_SAMPLE = [
 	},
 ];
 ALL_DATA_LIST = ALL_DATA_LIST_SAMPLE;
-const ALL_DATA_LIST_validation_fn = (ALL_DATA_LIST) =>{
+const ALL_DATA_LIST_validation_fn = (ALL_DATA_LIST) => {
 try {
 	// "data_id_from_online": 整数かnull
 	// "meta_data": {desc: 1文字以上100文字以下の文字列}
@@ -106,112 +102,58 @@ const check_fn = (idx) => {
 };
 const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX=0}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = () => {
+const add_list = ({Add_Or_Edit="add",Target_Data_Type="text", Edit_New_Text="new_text", ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
 try {
+if(Add_Or_Edit === "edit"){
+	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+	old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
+	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]);
+	ALL_DATA_LIST = old_ALL_DATA_LIST;
+}
+if(Add_Or_Edit === "add"){
 	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
 	old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = [
 		...old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'],
 		new_list_obj({Text: NEW_TEXT, Link: NEW_LINK, INDEX: old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].length})
 	];
-	console.log(old_ALL_DATA_LIST);
 	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
 	ALL_DATA_LIST = old_ALL_DATA_LIST;
-	console.log("add_list success!!");
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;		
-}
+};
+} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
 };
 const insert_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
 try {
-	ALL_DATA_LIST_Idx = ALL_DATA_LIST_Idx === null ? 0 : ALL_DATA_LIST_Idx;
-	List_Idx = List_Idx === null ? 0 : List_Idx;
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
-		new_list_obj("foo_bar", List_Idx),
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx)
-	];
-	console.log("insert_list success!!");
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;		
-}
+const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
+	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
+	new_list_obj("foo_bar", List_Idx),
+	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx)
+];
+} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
 };
 const delete_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
 try {
-	ALL_DATA_LIST_Idx = ALL_DATA_LIST_Idx === null ? 0 : ALL_DATA_LIST_Idx;
-	List_Idx = List_Idx === null ? 0 : List_Idx;
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx + 1)
-	];
-	console.log("delete_list success!!");
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;		
-}
+const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+// ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
+	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
+	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx + 1)
+];
+console.log("delete_list success!!");
+} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
 };
 // checkしたlistのindexの配列を返す関数
-// const checked_list_index = () => list.map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
-const checked_list_index = () => ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].map((item, idx) => item.check ? idx : null).filter((item) => item !== null);
-// StrをisURLでチェックしてtrueならそのまま返す関数
-const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
 const init = (item, User_Name) => {
 try {
-		// calendarの初期化
-		init_calendar();
-	// decodeURIComponent()の逆、encodeURIComponent()はserver.js側で行っている
-	// decodeURIComponent(
-	JSON.parse(
-		item.data_json_str
-	)
-	// )
-	.data1.forEach((V) => {
-		if(V.check === true){
-			add_event(V.text, V.check_date);
-		}
-		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
-	});
-	// ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
-	ALL_DATA_LIST[0]['list'] = 
-	// decodeURIComponent(
-	JSON.parse(
-		item.data_json_str
-	)
-	// )
-	.data1;
-	// ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
-	ALL_DATA_LIST[0]['meta_data'] = 
-	// decodeURIComponent(
-	JSON.parse(
-		item.data_json_str
-	)
-	// )
-	.data2;
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;
-}
-};
-// encodeURIComponent
-// decodeURIComponent
-
-// text validation
-const any_item_validation_and_update = ({Target_Data_Type="text", Edit_New_Text="new_text", ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-	try {
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
-	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]);
-	ALL_DATA_LIST = old_ALL_DATA_LIST;
-	ERROR_MESSAGE = "";
-	} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;
-	}
+init_calendar();
+JSON.parse(item.data_json_str).data1.forEach((V) => {
+	if(V.check === true){add_event(V.text, V.check_date)}
+	NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
+});
+ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
+ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
+} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
 };
 const all_event_check = () => {
 	// eventが既にある場合は全て削除
@@ -242,7 +184,6 @@ const toggle_calendar = () => IS_CALENDAR_VISIBLE = !IS_CALENDAR_VISIBLE;
 const all_calendar_fn = () => {
     let calendar_val = null;
     let all_event = null;
-
     const init_calendar = () =>{
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -252,7 +193,6 @@ const all_calendar_fn = () => {
         calendar.render();
         calendar_val = calendar;
     }
-
     // イベント表示
     function show_event(){
             // イベントを一括で取り出す
@@ -332,7 +272,6 @@ afterUpdate(async () => {
 	}
 
 });
-
 const all_web_prop = () => {
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 // let NAME = 'user1';
@@ -403,9 +342,8 @@ const all_fetch_fn = ()  => {
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
 	const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='id', REQ_TAG_PARAM, USER_PARAM}) => {
-		// console.log(ORDER_BY_COLUMN_PARAM);
 		try {
-			console.log(REQ_TAG_PARAM);
+		console.log(REQ_TAG_PARAM);
 		ORDER_BY = ORDER_BY_PARAM; // ? ORDER_BY_PARAM : 'DESC';
 		ORDER_BY_COLUMN = ORDER_BY_COLUMN_PARAM; // ? ORDER_BY_COLUMN_PARAM : 'links.id';
 		REQ_TAG = REQ_TAG_PARAM; // ? REQ_TAG_PARAM : null;
@@ -999,10 +937,10 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 				<input type="text"
 					minlength="1" maxlength="20"
 					required
-					value={item.text} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "text", Edit_New_Text: e.target.value, ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx}) } />
+					value={item.text} on:input={(e) => add_list({Add_Or_Edit: "edit",Target_Data_Type: "text", Edit_New_Text: e.target.value, ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx}) } />
 				<input type="url" 
 					pattern="https?://.+"
-					value={item.link} on:input={(e) => any_item_validation_and_update({Target_Data_Type: "link", Edit_New_Link: e.target.value, ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx}) } />
+					value={item.link} on:input={(e) => add_list({Add_Or_Edit: "edit",Target_Data_Type: "link", Edit_New_Link: e.target.value, ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx}) } />
 				<!-- <button on:click={() => insert_list(idx)}>insert_list</button> -->
 				<button on:click={() => insert_list({ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx})}>insert_list</button>
 				<button on:click={() => delete_list({ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx})}>delete_list</button>
@@ -1014,7 +952,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		<input type="text" minlength="1" maxlength="20" required value={NEW_TEXT} on:input={(e) => NEW_TEXT = e.target.value} />
 		<input type="url" value={NEW_LINK} on:input={(e) => NEW_LINK = e.target.value} placeholder="https://example.com" pattern="https?://.+">
 		<!-- <input type="url" value={NEW_LINK} on:input={(e) => NEW_LINK = e.target.value} /> -->
-		<button on:click={() => add_list()}>add_list</button>
+		<button on:click={() => add_list({Add_Or_Edit: "add"})}>add_list</button>
 		</div>
 {/each}
 
