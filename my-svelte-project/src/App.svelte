@@ -161,16 +161,41 @@ const checked_list_index = () => ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].map(
 // StrをisURLでチェックしてtrueならそのまま返す関数
 const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
 const init = (item, User_Name) => {
-	// calendarの初期化
-	init_calendar();
-	JSON.parse(item.data_json_str).data1.forEach((V) => {
+try {
+		// calendarの初期化
+		init_calendar();
+	// decodeURIComponent()の逆、encodeURIComponent()はserver.js側で行っている
+	// decodeURIComponent(
+	JSON.parse(
+		item.data_json_str
+	)
+	// )
+	.data1.forEach((V) => {
 		if(V.check === true){
 			add_event(V.text, V.check_date);
 		}
 		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
 	});
-	ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
-	ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
+	// ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
+	ALL_DATA_LIST[0]['list'] = 
+	// decodeURIComponent(
+	JSON.parse(
+		item.data_json_str
+	)
+	// )
+	.data1;
+	// ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
+	ALL_DATA_LIST[0]['meta_data'] = 
+	// decodeURIComponent(
+	JSON.parse(
+		item.data_json_str
+	)
+	// )
+	.data2;
+} catch (error) {
+	console.log(error);
+	ERROR_MESSAGE = error.message;
+}
 };
 // encodeURIComponent
 // decodeURIComponent

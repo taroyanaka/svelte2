@@ -504,6 +504,7 @@ app.get('/read_all', (req, res) => {
         try {
             // req.bodyに ASC,DESC,TAG,USERがある場合は、それぞれの条件に合わせてSQL文を変更する関数
             const REQ_TAG = req.query.tag ? req.query.tag : null;
+            // const REQ_TAG = encodeURIComponent(req.query.tag) ? encodeURIComponent(req.query.tag) : null;
             // REQ_TAGがtagsテーブルに存在しない場合は、エラーを返す
             //   db.prepare(`SELECT * FROM tags WHERE tag = ?`).get(REQ_TAG) === undefined ? (()=>{throw new Error('そんなタグねえよ')})() : null;
             const USER = req.query.user ? req.query.user : null;
@@ -563,7 +564,7 @@ app.get('/read_all', (req, res) => {
                 db.prepare(QUERY_WITH_PARAM_OBJ.query).all();
 
             const response = pre_result.map(parent => {
-              const tags = db.prepare(`
+              let tags = db.prepare(`
                 SELECT
                 tags.id AS id, tags.tag AS tag
                 FROM tags
@@ -578,7 +579,7 @@ app.get('/read_all', (req, res) => {
                     WHERE likes.link_id = ?
                 `).all(parent.id);
 
-              const comments = db.prepare(`
+              let comments = db.prepare(`
                 SELECT
                 comments.id AS id, comments.comment AS comment, comments.created_at AS created_at, comments.updated_at AS updated_at,
                 users.id AS user_id, users.username AS username
@@ -588,8 +589,8 @@ app.get('/read_all', (req, res) => {
                 WHERE links.id = ?
               `).all(parent.id);
         
-                const comments_and_replies = (comments ? comments : []).map(comment => {
-                    const comment_replies = db.prepare(`
+                let comments_and_replies = (comments ? comments : []).map(comment => {
+                    let comment_replies = db.prepare(`
                     SELECT
                     comment_replies.id AS id, comment_replies.reply AS reply, comment_replies.created_at AS created_at, comment_replies.updated_at AS updated_at,
                     users.id AS user_id, users.username AS username
@@ -604,6 +605,27 @@ app.get('/read_all', (req, res) => {
                     }
                 });
         
+                // parentのdata_json_strをuriDecodeして戻す
+                parent.data_json_str = decodeURIComponent(parent.data_json_str);
+                // tagsのuriDecodeして戻す
+                tags = tags.map(tag => tag.tag = decodeURIComponent(tag.tag));
+                // commentsをuriDecodeして戻す
+                comments = comments.map(comment => {
+                    comment.comment = decodeURIComponent(comment.comment);
+                    return comment;
+                });
+                // comment_repliesをuriDecodeして戻す
+                comments_and_replies = comments_and_replies.map(comment => {
+                    comment.comment = decodeURIComponent(comment.comment);
+                    comment.comment_replies = comment.comment_replies.map(reply => {
+                        reply.reply = decodeURIComponent(reply.reply);
+                        return reply;
+                    });
+                    return comment;
+                });
+
+
+
               return {
                 ...parent,
                 tags,
@@ -773,43 +795,43 @@ app.post('/like_increment_or_decrement', (req, res) => {
         }
 
     };
-    const make_tag_and_insert_tag_for_insert_tag = (TAG, LINK_ID) => {
-        try {
-// linkに対して既に同じタグがついているかチェックし、ついていたらエラーを返す
-const TAG_RESULT = db.prepare(`
-SELECT
-tags.id AS id, tags.tag AS tag
-FROM tags
-LEFT JOIN links_tags ON tags.id = links_tags.tag_id
-WHERE links_tags.link_id = ?
-AND tags.tag = ?
-    `).get(LINK_ID, TAG);
-TAG_RESULT
-    ? (()=>{throw new Error('既に同じタグがついています')})()
-    : null;
+const make_tag_and_insert_tag_for_insert_tag = (TAG, LINK_ID) => {
+    try {
+    // linkに対して既に同じタグがついているかチェックし、ついていたらエラーを返す
+    const TAG_RESULT = db.prepare(`
+    SELECT
+    tags.id AS id, tags.tag AS tag
+    FROM tags
+    LEFT JOIN links_tags ON tags.id = links_tags.tag_id
+    WHERE links_tags.link_id = ?
+    AND tags.tag = ?
+        `).get(LINK_ID, TAG);
+    TAG_RESULT
+        ? (()=>{throw new Error('既に同じタグがついています')})()
+        : null;
 
-console.log(
-    'TAG', TAG,
-    'LINK_ID', LINK_ID
-)
-console.log('make_tag_and_insert_tag_for_insert_tag 2');
-        db.prepare(`INSERT INTO tags (tag) VALUES (?)`).run(TAG)
-            ? null
-            // : (()=>{throw new Error({res: 'tagsにレコードを挿入できませんでした', status: 500})})();
-            : (()=>{throw new Error('tagsにレコードを挿入できませんでした')})();
-        const newTag = db.prepare(`SELECT id, tag FROM tags WHERE tag = ?`).get(TAG)
-            ? db.prepare(`SELECT id, tag FROM tags WHERE tag = ?`).get(TAG)
-            : (()=>{throw new Error('tagsにレコードを挿入できませんでした')})();
-        db.prepare(`INSERT INTO links_tags (link_id, tag_id, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(LINK_ID, newTag.id, now(), now())
-            ? null
-            // : (()=>{throw new Error({res: 'links_tagsにレコードを挿入できませんでした', status: 500})})();
-            : (()=>{throw new Error('links_tagsにレコードを挿入できませんでした')})();
-        return newTag;
-        } catch (error) {
-            // (()=>{throw new Error('既に同じタグがついているか、何かの既存タグ追加エラー')})()
-            (()=>{throw new Error(error.message)})()
-        }
-    };
+    console.log(
+        'TAG', TAG,
+        'LINK_ID', LINK_ID
+    )
+    console.log('make_tag_and_insert_tag_for_insert_tag 2');
+    db.prepare(`INSERT INTO tags (tag) VALUES (?)`).run(encodeURIComponent(TAG))
+        ? null
+        // : (()=>{throw new Error({res: 'tagsにレコードを挿入できませんでした', status: 500})})();
+        : (()=>{throw new Error('tagsにレコードを挿入できませんでした')})();
+    const newTag = db.prepare(`SELECT id, tag FROM tags WHERE tag = ?`).get(TAG)
+        ? db.prepare(`SELECT id, tag FROM tags WHERE tag = ?`).get(TAG)
+        : (()=>{throw new Error('tagsにレコードを挿入できませんでした')})();
+    db.prepare(`INSERT INTO links_tags (link_id, tag_id, created_at, updated_at) VALUES (?, ?, ?, ?)`).run(LINK_ID, newTag.id, now(), now())
+        ? null
+        // : (()=>{throw new Error({res: 'links_tagsにレコードを挿入できませんでした', status: 500})})();
+        : (()=>{throw new Error('links_tagsにレコードを挿入できませんでした')})();
+    return newTag;
+    } catch (error) {
+    // (()=>{throw new Error('既に同じタグがついているか、何かの既存タグ追加エラー')})()
+    (()=>{throw new Error(error.message)})()
+    }
+};
 app.post('/insert_tag', (req, res) => {
         try {
             // console.log("TEST");
@@ -874,13 +896,10 @@ app.post('/insert_comment', (req, res) => {
     try {
         const user = get_user_with_permission(req);
         user || user.commentable ? null : (()=>{throw new Error('権限がありません')})();
-
         const error_check_result = all_validation_checking_client_server_both['validation_insert_comment'](req.body.comment, user.data_limit);
         error_check_result === 'OK' ? null : (()=>{throw new Error(error_check_result)})();
-
         db.prepare(`SELECT COUNT(*) AS count FROM comments WHERE user_id = ? AND link_id = ?`).get(user.user_id, req.body.link_id).count > 0 ? (()=>{throw new Error('既に同じcommentが存在する場合はエラー')})() : null;
-
-        const result = db.prepare(`INSERT INTO comments (user_id, link_id, comment, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`).run(user.user_id, req.body.link_id, req.body.comment, now(), now());
+        const result = db.prepare(`INSERT INTO comments (user_id, link_id, comment, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`).run(user.user_id, req.body.link_id, encodeURIComponent(req.body.comment), now(), now());
     res.status(200)
         .json({result: 'success'
             ,status: 200
@@ -938,7 +957,7 @@ app.post('/insert_comment_reply', (req, res) => {
             : null;
         const response =
             db.prepare(`INSERT INTO comment_replies (user_id, comment_id, reply, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
-                .run(user.user_id, req.body.comment_id, req.body.comment_reply, now(), now());
+                .run(user.user_id, req.body.comment_id, encodeURIComponent(req.body.comment_reply), now(), now());
     res.status(200)
         .json({result: 'success'
             ,status: 200
@@ -1132,7 +1151,7 @@ const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形�
                 user_id: user.user_id,
                 // req.body.link = '';
                 link: '',
-                data_json_str: req.body.data_json_str,
+                data_json_str: encodeURIComponent(req.body.data_json_str),
                 created_at: now(),
                 updated_at: now()
             });
@@ -1216,7 +1235,7 @@ app.post('/update_link', (req, res) => {
         WHERE id = @link_id AND user_id = @user_id`)
         .run({
             link: '',
-            data_json_str: req.body.data_json_str,
+            data_json_str: encodeURIComponent(req.body.data_json_str),
             updated_at: now(),
             link_id: req.body.link_id,
             user_id: user.user_id,
