@@ -20,6 +20,7 @@ let IS_CALENDAR_VISIBLE = true;
 // const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
 // await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
 
+
 const ALL_DATA_LIST_SAMPLE = [
 	{
 		"data_id_from_online": null,
