@@ -13,6 +13,13 @@ let IS_SHOW_LEFT = true;
 let IS_SHOW_RIGHT = true;
 let IS_CALENDAR_VISIBLE = true;
 
+
+// const obj = await app.$$.ctx;
+// const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
+// const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
+// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
+// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
+
 const ALL_DATA_LIST_SAMPLE = [
 	{
 		"data_id_from_online": null,
@@ -74,19 +81,11 @@ try {
 		check_meta_data(All_Data.meta_data);
 		check_list(All_Data.list);
 	});
-	// check_data_id_from_online(ALL_DATA_LIST.data_id_from_online);
-	// check_meta_data(ALL_DATA_LIST.meta_data);
-	// check_list(ALL_DATA_LIST.list);
-	console.log("ALL_DATA_LIST_validation_fn success!!");
 } catch (error) {
 	console.log(error);
 	ERROR_MESSAGE = error.message;
 }
 };
-
-
-
-// idを指定してcheckを切り替え
 const check_fn = (idx) => {
 	if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === true){
 		delete_event((new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
@@ -103,11 +102,8 @@ const check_fn = (idx) => {
 		console.log("data_id_from_online", data_id_from_online);
 		insert_or_update_link(data_id_from_online);
 	}
-
 };
-// 最大のid+1(listが空の時は0)
-// const new_id = () => list.length === 0 ? 0 : Math.max(...list.map((item) => item.id)) + 1;
-const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
+const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX=0}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
 // Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
 const add_list = () => {
 try {
@@ -212,13 +208,9 @@ const all_event_check = () => {
 }
 const toggle_left_or_right_side = () => {
 	// IS_SHOW_LEFTとIS_SHOW_RIGHTが両方true、どちらかだけがtrue、3つの状態がある
-	if (IS_SHOW_LEFT && IS_SHOW_RIGHT) {
-		[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, false];
-	} else if (IS_SHOW_LEFT && !IS_SHOW_RIGHT) {
-		[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [false, true];
-	} else if (!IS_SHOW_LEFT && IS_SHOW_RIGHT) {
-		[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, true];
-	}
+	     if (IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, false];}
+	else if (IS_SHOW_LEFT && !IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [false, true];}
+	else if (!IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, true];}
 };
 const toggle_calendar = () => IS_CALENDAR_VISIBLE = !IS_CALENDAR_VISIBLE;
 const all_calendar_fn = () => {
@@ -280,18 +272,8 @@ const all_calendar_fn = () => {
 }
 const all_calendar = all_calendar_fn();
 const {calendar_val,all_event,init_calendar,show_event,add_event,delete_event,} = all_calendar;
-// const obj = await app.$$.ctx;
-// const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
-// const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
-// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
-// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
-	
-// 空のリストを作る関数
-const make_new_list = ({Text='foo_bar', Link='https://google.com', Check=false, Check_date=((new Date()).toISOString())}) =>{
-	// list = [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}];
-	ALL_DATA_LIST_INDEX = ALL_DATA_LIST_INDEX.length === 0 ? 0 : ALL_DATA_LIST_INDEX + 1;
-	ALL_DATA_LIST[ALL_DATA_LIST_INDEX] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [{id: 0, text: Text, link: Link, check: Check, check_date: Check_date}]};
-	// ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['meta_data'] = {desc: "new_desc"};
+const make_new_list = () =>{
+	ALL_DATA_LIST[0] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [new_list_obj({Text:"text", Link:"https://google.com", INDEX: 0})]};
 	data_id_from_online = null;
 };
 import { onMount } from 'svelte';
@@ -302,7 +284,6 @@ $: {
 console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
 
 }
-// onMount(fetch_hello({}));
 onMount(async () => {
 	try {
 		await fetch_hello({});
@@ -382,11 +363,7 @@ const all_fetch_fn = ()  => {
 	// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
 	const insert_or_update_link = async (Link_id) => {
 		try {
-			console.log(Link_id);
-			// const DATA_JSON_STR = JSON.stringify({data1: list, data2: meta_data});
-			// const DATA_JSON_STR = JSON.stringify({data1: ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'], data2: meta_data});
 			const DATA_JSON_STR = JSON.stringify({data1: ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'], data2: ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['meta_data']});
-			console.log(DATA_JSON_STR);
 			// Link_idとuser_idが一致するものがある場合はupdateする
 			if(Link_id !== undefined  && Link_id !== null){
 				console.log('update');
@@ -399,8 +376,6 @@ const all_fetch_fn = ()  => {
 			await fetch_insert_link();
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
-
-
 	const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='id', REQ_TAG_PARAM, USER_PARAM}) => {
 		// console.log(ORDER_BY_COLUMN_PARAM);
 		try {
@@ -430,11 +405,6 @@ const all_fetch_fn = ()  => {
 			ERROR_MESSAGE = error.message;
 		}
 	};
-	
-	
-	
-	
-	
 	const get_POST_object = (BODY_OBJ) => {
 		return {
 		method: 'POST',
@@ -442,8 +412,6 @@ const all_fetch_fn = ()  => {
 			body: JSON.stringify(BODY_OBJ)
 		}
 	};
-	
-	
 	const response_handling = async (RESPONSE) => {
 		try {
 		// RESPONSE.status === 400 ? console.log('RESPONSE.status: RESPONSE.status === 400') : null;
@@ -453,10 +421,8 @@ const all_fetch_fn = ()  => {
 			(()=>{throw new Error(error.message)})();
 		}
 	}
-
 	// URLの配列の文字列から始まる場合はtrueを返す関数を1行で
 	// const is_include_WHITE_LIST_URL = (target_url_str, WHITE_LIST_URL_ARRAY) => WHITE_LIST_URL_ARRAY.some((WHITE_LIST_URL) => target_url_str.startsWith(WHITE_LIST_URL));
-	let hoge = null;
 	const fetch_insert_link = async (sample_data) => {
 		try {
 		// sample_dataがある場合はsample_dataをlistに代入
@@ -469,12 +435,9 @@ const all_fetch_fn = ()  => {
 			}
 		// listのcheckを全部falseにし、change_dateを現在時刻にする
 		const check_mode = false;
-		// ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list']からcheckがtrueのものだけをuncheck_listにする
-		// if(check_mode===true){list = uncheck_list};
 		if(check_mode === true){
 			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].map((item) => item.check === true ? {...item, check: false, check_date: (new Date()).toISOString()} : item);
 		};
-		// listをlist_validation関数でチェック
 		const DATA_JSON_STR = JSON.stringify({
 			data1: ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'],
 			data2: ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['meta_data']
@@ -535,8 +498,6 @@ const all_fetch_fn = ()  => {
 		await response_handling(RESPONSE);
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
-	
-	
 	const fetch_get_collect_value_for_test = async () => {
 		try {
 		const RESULT_OF_TEST = await (await fetch(DOMAIN_NAME+'get_collect_value_for_test', get_POST_object({ name: NAME, password: PASSWORD }))).json();
@@ -545,16 +506,13 @@ const all_fetch_fn = ()  => {
 		console.log(error);
 		}
 	};
-	
 	const fetch_get_tags_for_autocomplete = async () => {
 		const json = await (await fetch(DOMAIN_NAME+'get_tags_for_autocomplete', get_POST_object({ name: NAME, password: PASSWORD })))
 						.json();
 		const RES = await json;
 		ALL_TAGS = await RES.message;
 	};
-	
 	const remove_error_message = () => ERROR_MESSAGE = "";
-	
 	// <button on:click={() => ORDER_BY_COLUMN === 'links.id' ? ORDER_BY_COLUMN = 'created_at' : ORDER_BY_COLUMN === 'created_at' ? ORDER_BY_COLUMN = 'updated_at' : ORDER_BY_COLUMN = 'links.id'}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>
 	// const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='links.id', REQ_TAG_PARAM, USER_PARAM}) => {
 	const order_by_column_and_fetch_hello = async () => {
@@ -594,8 +552,6 @@ const all_fetch_fn = ()  => {
 			USER_PARAM: USER_VAL,
 		});
 	};
-
-
 	// returnで全ての関数が含まれたオブジェクトを返す
 	return {
 		test,
@@ -618,7 +574,6 @@ const all_fetch_fn = ()  => {
 		req_tag_and_fetch_hello,
 		user_and_fetch_hello,
 	};
-
 };
 const all_fetch = all_fetch_fn();
 const {test,insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch;
@@ -997,7 +952,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		<!-- <button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button> -->
 <button on:click={() => insert_or_update_link()} class="insert_or_update_link">insert_or_update_link</button>
 		<!-- <button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button> -->
-<button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button>
+<button on:click={() => make_new_list()} class="make_new_list">make_new_list</button>
 		<button on:click={() => fetch_insert_link("sample1")} class="fetch_insert_link">sample1 fetch_insert_link</button>
 		<button on:click={() => fetch_insert_link("sample2")} class="fetch_insert_link">sample2 fetch_insert_link</button>
 		<!-- <div>desc: {meta_data.desc}</div> -->
@@ -1162,27 +1117,20 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 
 
 <style>
-	#calendar{
+#calendar{
 	width: 100%;
 	/* height: 20rem; */
 	/* zindex -1 */
 	z-index: -1;
 }
-
-	/* 大きく表示する */
-	.EDIT_MODE{
-		width: 3rem;
-		height: 3rem;
-	}
-	.checkbox{
-		width: 2rem;
-		height: 2rem;
-	}
-
-	/* .coreと.doughnutはpositionで同じ位置に表示してdoughnutをz-indexで後ろに表示 */
-
-	/* left_sideをwidth50%で左側にonline_dataをwidth50%で右側にdisplay flexで左右に分ける  */
-
+.EDIT_MODE{
+	width: 3rem;
+	height: 3rem;
+}
+.checkbox{
+	width: 2rem;
+	height: 2rem;
+}
 .core{
 	position: relative;
 	display: flex;
