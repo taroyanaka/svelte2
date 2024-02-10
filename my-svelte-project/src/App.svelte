@@ -314,6 +314,10 @@ return {
 };
 };
 let {NAME, PASSWORD, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
+
+
+
+
 const all_fetch_fn = ()  => {
 	const test = async (foo) => {console.log('test')};
 	// linkのidとusernameが一致するものがある場合はupdateする
@@ -863,10 +867,15 @@ test_sample_exe5,
 
 };
 const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test_fn();
+
+
+
 import { onMount } from 'svelte';
 import { afterUpdate } from 'svelte';
 import { isURL } from 'validator';
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
+
+
 $: {
 console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
 }
