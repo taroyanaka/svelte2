@@ -1,166 +1,43 @@
 <script>
-let hello_fetch_data = [];
-let data_id_from_online = null;
+let HELLO_FETCH_DATA = [];
+let DATA_ID_FROM_ONLINE = null;
 // let DEV_MODE = true;
 let DEV_MODE = false;
 let EDIT_MODE = false;
 let NEW_TEXT = 'text';
 let NEW_LINK = 'https://google.com';
-let ALL_DATA_LIST_INDEX = 0;
-let ALL_DATA_LIST = [];
-// left_sideかright_sideどちらかだけを表示するトグル関数
+let IS_CALENDAR_VISIBLE = true;
 let IS_SHOW_LEFT = true;
 let IS_SHOW_RIGHT = true;
-let IS_CALENDAR_VISIBLE = true;
+const toggle_left_or_right_side = () => {
+	// IS_SHOW_LEFTとIS_SHOW_RIGHTが両方true、どちらかだけがtrue、3つの状態がある
+	     if (IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, false];}
+	else if (IS_SHOW_LEFT && !IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [false, true];}
+	else if (!IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, true];}
+};
 // const obj = await app.$$.ctx;
 // const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
 // const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
 // const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
 // await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
-const ALL_DATA_LIST_SAMPLE = [
-	{
-		"data_id_from_online": null,
-		"meta_data": {
-			"desc": "Best albums of all time of hard rock and heavy metal, 10"
-		},
-		"list": [
-			{
-				"id": 0,
-				"text": "High Voltage: AC/DC",
-				"link": "https://google.com",
-				"check": true,
-				"check_date": "2024-01-28T07:19:52.122Z"
-			},
-			{
-				"id": 1,
-				"text": "Led Zeppelin IV: Led Zeppelin",
-				"link": "https://google.com",
-				"check": true,
-				"check_date": "2024-01-28T07:19:52.947Z"
-			},
-		]
-	},
-];
-ALL_DATA_LIST = ALL_DATA_LIST_SAMPLE;
-const ALL_DATA_LIST_validation_fn = (ALL_DATA_LIST) => {
-try {
-	// "data_id_from_online": 整数かnull
-	// "meta_data": {desc: 1文字以上100文字以下の文字列}
-	// "list": 配列{ id: 整数で連番。最初の要素は0, text: 1文字以上100文字以下の文字列, link: URL文字列, check: Boolean, check_date: ISO8601形式のDate文字列}
-	// "list"が空の場合はエラー
-	const check_data_id_from_online = (Data_id_from_online) => {
-		typeof Data_id_from_online === 'number' || Data_id_from_online === null ? null : (()=>{throw new Error('data_id_from_onlineが整数かnullでない場合はエラー')})();
-	};
-	const check_meta_data = (Meta_Data) => {
-		typeof Meta_Data.desc === 'string' && Meta_Data.desc.length > 0 && Meta_Data.desc.length < 101 ? null : (()=>{throw new Error('meta_dataが1文字以上100文字以下の文字列でない場合はエラー')})();
-	};
-	const check_list = (List) => {
-		// Listが配列であることを確認
-		Array.isArray(List) ? null : (()=>{throw new Error('Listが配列でない場合はエラー')})();
-		List.length > 0 ? null : (()=>{throw new Error('listが空の場合はエラー')})();
-		// item.idが連番であることを確認
-		List.forEach((item, idx) => {
-			// idが整数で連番。最初の要素は0
-			item.id === idx ? null : (()=>{throw new Error('idが整数で連番。最初の要素は0でない場合はエラー')})();
-			// textが1文字以上100文字以下の文字列
-			item.text.length > 0 && item.text.length < 101 ? null : (()=>{throw new Error('textが1文字以上100文字以下の文字列でない場合はエラー')})();
-			// linkがURL文字列
-			isURL(item.link) ? null : (()=>{throw new Error('linkがURL文字列でない場合はエラー')})();
-			// checkがBoolean
-			typeof item.check === 'boolean' ? null : (()=>{throw new Error('checkがBooleanでない場合はエラー')})();
-			// check_dateがISO8601形式のDate文字列
-			// isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
-		});
-	};
-	// 全てのcheck関数を実行
-	ALL_DATA_LIST.forEach(All_Data=>{
-		check_data_id_from_online(All_Data.data_id_from_online);
-		check_meta_data(All_Data.meta_data);
-		check_list(All_Data.list);
-	});
-} catch (error) {
-	console.log(error);
-	ERROR_MESSAGE = error.message;
-}
-};
-const check_fn = (idx) => {
-	if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === true){
-		delete_event((new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
-		ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = false;
-		ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
-		return;
-	};
-	if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === false){
-		ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
-		add_event(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['text'], (new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
-		ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = true;
-	};
-	if(data_id_from_online !== null){
-		console.log("data_id_from_online", data_id_from_online);
-		insert_or_update_link(data_id_from_online);
-	}
-};
-const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX=0}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
-// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-const add_list = ({Add_Or_Edit="add",Target_Data_Type="text", Edit_New_Text="new_text", ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-try {
-if(Add_Or_Edit === "edit"){
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
-	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]);
-	ALL_DATA_LIST = old_ALL_DATA_LIST;
-}
-if(Add_Or_Edit === "add"){
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = [
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'],
-		new_list_obj({Text: NEW_TEXT, Link: NEW_LINK, INDEX: old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].length})
-	];
-	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-	ALL_DATA_LIST = old_ALL_DATA_LIST;
-};
-} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
-};
-const insert_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-try {
-const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
-	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
-	new_list_obj("foo_bar", List_Idx),
-	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx)
-];
-} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
-};
-const delete_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-try {
-const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-// ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
-	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
-	...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx + 1)
-];
-console.log("delete_list success!!");
-} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
-};
-// checkしたlistのindexの配列を返す関数
+
 const init = (item, User_Name) => {
-try {
-init_calendar();
-JSON.parse(item.data_json_str).data1.forEach((V) => {
-	if(V.check === true){add_event(V.text, V.check_date)}
-	NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
-});
-ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
-ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
-} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
+	try {
+	init_calendar();
+	JSON.parse(item.data_json_str).data1.forEach((V) => {
+		if(V.check === true){add_event(V.text, V.check_date)}
+		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
+	});
+	ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
+	ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
+	} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
 };
 const all_event_check = () => {
 	// eventが既にある場合は全て削除
 	init_calendar();
 	console.log("all_event_check");
 	// hello_fetch_dataからusernameがNAMEと一致するものを取り出す
-	const my_fetch_list = hello_fetch_data.filter((each_list) => each_list['username'] === NAME);
+	const my_fetch_list = HELLO_FETCH_DATA.filter((each_list) => each_list['username'] === NAME);
 	// 全てのmy_fetch_listを一つのlistにまとめる
 	const all_my_fetch_list = my_fetch_list.reduce((acc, cur) => acc.concat(cur), []);
 	// all_my_fetch_listからdata1を取り出す
@@ -173,17 +50,169 @@ const all_event_check = () => {
 	time_fix_all_my_list_data1.forEach((item, idx) => {
 		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
 	});
-}
-const toggle_left_or_right_side = () => {
-	// IS_SHOW_LEFTとIS_SHOW_RIGHTが両方true、どちらかだけがtrue、3つの状態がある
-	     if (IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, false];}
-	else if (IS_SHOW_LEFT && !IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [false, true];}
-	else if (!IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, true];}
 };
-const toggle_calendar = () => IS_CALENDAR_VISIBLE = !IS_CALENDAR_VISIBLE;
+
+
+
+
+
+
+
+
+
+
+
+const all_list_fn = () => {
+	let ALL_DATA_LIST_INDEX = 0;
+	let ALL_DATA_LIST = [];
+	const ALL_DATA_LIST_SAMPLE = [
+		{
+			"data_id_from_online": null,
+			"meta_data": {
+				"desc": "Best albums of all time of hard rock and heavy metal, 10"
+			},
+			"list": [
+				{
+					"id": 0,
+					"text": "High Voltage: AC/DC",
+					"link": "https://google.com",
+					"check": true,
+					"check_date": "2024-01-28T07:19:52.122Z"
+				},
+				{
+					"id": 1,
+					"text": "Led Zeppelin IV: Led Zeppelin",
+					"link": "https://google.com",
+					"check": true,
+					"check_date": "2024-01-28T07:19:52.947Z"
+				},
+			]
+		},
+	];
+	ALL_DATA_LIST = ALL_DATA_LIST_SAMPLE;
+	const make_new_list = () =>{
+		ALL_DATA_LIST[0] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [new_list_obj({Text:"text", Link:"https://google.com", INDEX: 0})]};
+		DATA_ID_FROM_ONLINE = null;
+	};
+	const ALL_DATA_LIST_validation_fn = (ALL_DATA_LIST) => {
+	try {
+		// "data_id_from_online": 整数かnull
+		// "meta_data": {desc: 1文字以上100文字以下の文字列}
+		// "list": 配列{ id: 整数で連番。最初の要素は0, text: 1文字以上100文字以下の文字列, link: URL文字列, check: Boolean, check_date: ISO8601形式のDate文字列}
+		// "list"が空の場合はエラー
+		const check_data_id_from_online = (Data_id_from_online) => {
+			typeof Data_id_from_online === 'number' || Data_id_from_online === null ? null : (()=>{throw new Error('data_id_from_onlineが整数かnullでない場合はエラー')})();
+		};
+		const check_meta_data = (Meta_Data) => {
+			typeof Meta_Data.desc === 'string' && Meta_Data.desc.length > 0 && Meta_Data.desc.length < 101 ? null : (()=>{throw new Error('meta_dataが1文字以上100文字以下の文字列でない場合はエラー')})();
+		};
+		const check_list = (List) => {
+			// Listが配列であることを確認
+			Array.isArray(List) ? null : (()=>{throw new Error('Listが配列でない場合はエラー')})();
+			List.length > 0 ? null : (()=>{throw new Error('listが空の場合はエラー')})();
+			// item.idが連番であることを確認
+			List.forEach((item, idx) => {
+				// idが整数で連番。最初の要素は0
+				item.id === idx ? null : (()=>{throw new Error('idが整数で連番。最初の要素は0でない場合はエラー')})();
+				// textが1文字以上100文字以下の文字列
+				item.text.length > 0 && item.text.length < 101 ? null : (()=>{throw new Error('textが1文字以上100文字以下の文字列でない場合はエラー')})();
+				// linkがURL文字列
+				isURL(item.link) ? null : (()=>{throw new Error('linkがURL文字列でない場合はエラー')})();
+				// checkがBoolean
+				typeof item.check === 'boolean' ? null : (()=>{throw new Error('checkがBooleanでない場合はエラー')})();
+				// check_dateがISO8601形式のDate文字列
+				// isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
+			});
+		};
+		// 全てのcheck関数を実行
+		ALL_DATA_LIST.forEach(All_Data=>{
+			check_data_id_from_online(All_Data.data_id_from_online);
+			check_meta_data(All_Data.meta_data);
+			check_list(All_Data.list);
+		});
+	} catch (error) {
+		console.log(error);
+		ERROR_MESSAGE = error.message;
+	}
+	};
+	const check_fn = (idx) => {
+		if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === true){
+			delete_event((new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = false;
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
+			return;
+		};
+		if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === false){
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
+			add_event(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['text'], (new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = true;
+		};
+		if(DATA_ID_FROM_ONLINE !== null){
+			console.log("data_id_from_online", DATA_ID_FROM_ONLINE);
+			insert_or_update_link(DATA_ID_FROM_ONLINE);
+		}
+	};
+	const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX=0}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
+	// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
+	const add_list = ({Add_Or_Edit="add",Target_Data_Type="text", Edit_New_Text="new_text", ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
+	try {
+	if(Add_Or_Edit === "edit"){
+		const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+		old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
+		ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]);
+		ALL_DATA_LIST = old_ALL_DATA_LIST;
+	}
+	if(Add_Or_Edit === "add"){
+		const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+		old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = [
+			...old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'],
+			new_list_obj({Text: NEW_TEXT, Link: NEW_LINK, INDEX: old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].length})
+		];
+		ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+		ALL_DATA_LIST = old_ALL_DATA_LIST;
+	};
+	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
+	};
+	const insert_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
+	try {
+	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
+		new_list_obj("foo_bar", List_Idx),
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx)
+	];
+	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
+	};
+	const delete_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
+	try {
+	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+	// ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx + 1)
+	];
+	console.log("delete_list success!!");
+	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
+	};
+	return {
+		ALL_DATA_LIST_SAMPLE,
+		ALL_DATA_LIST,
+		ALL_DATA_LIST_INDEX,
+		make_new_list,
+		ALL_DATA_LIST_validation_fn,
+		check_fn,
+		add_list,
+		insert_list,
+		delete_list,
+	};
+
+};
+const {ALL_DATA_LIST_SAMPLE,ALL_DATA_LIST,ALL_DATA_LIST_INDEX,make_new_list,ALL_DATA_LIST_validation_fn,check_fn,add_list,insert_list,delete_list,} = all_list_fn();
 const all_calendar_fn = () => {
     let calendar_val = null;
     let all_event = null;
+	const toggle_calendar = () => IS_CALENDAR_VISIBLE = !IS_CALENDAR_VISIBLE;
     const init_calendar = () =>{
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -228,51 +257,18 @@ const all_calendar_fn = () => {
         });
     }
 	return {
+		IS_CALENDAR_VISIBLE,
 		calendar_val,
 		all_event,
+		toggle_calendar,
         init_calendar,
         show_event,
         add_event,
         delete_event,
     }
 }
-const all_calendar = all_calendar_fn();
-const {calendar_val,all_event,init_calendar,show_event,add_event,delete_event,} = all_calendar;
-const make_new_list = () =>{
-	ALL_DATA_LIST[0] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [new_list_obj({Text:"text", Link:"https://google.com", INDEX: 0})]};
-	data_id_from_online = null;
-};
-import { onMount } from 'svelte';
-import { afterUpdate } from 'svelte';
-import { isURL } from 'validator';
-// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
-$: {
-console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
-
-}
-onMount(async () => {
-	try {
-		await fetch_hello({});
-		await fetch_get_tags_for_autocomplete();	
-		await init_calendar();
-		// await init(JSON.parse(hello_fetch_data[0]['data_json_str']['data1']));
-	} catch (error) {
-		console.log(error);		
-	}
-
-});	
-afterUpdate(async () => {
-	try {
-		// await fetch_hello({});
-		// await fetch_get_tags_for_autocomplete();	
-		// await init(JSON.parse(hello_fetch_data[7][0]['data_json_str']['data1']));
-
-	} catch (error) {
-		console.log(error);		
-	}
-
-});
-const all_web_prop = () => {
+const {calendar_val,all_event,toggle_calendar,init_calendar,show_event,add_event,delete_event,} = all_calendar_fn();
+const all_web_prop_fn = () => {
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 // let NAME = 'user1';
 let NAME = 'user2';
@@ -316,11 +312,8 @@ return {
 	ALL_TAGS,
 	DOMAIN_NAME,
 };
-}
-const all_prop = all_web_prop();
-let {NAME, PASSWORD, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_prop;
-// コードの見通しを良くするために(エディタのFold機能のために)、all_fetch_fnとall_fetchにより、関数を全てまとめてオブジェクトにして返す
-// 1.all_fetch_fnを定義して、関数を全てまとめる 2.all_fetch_fn()を実行して全ての関数が含まれたオブジェクトを取得 3.all_fetchの全ての関数を取得
+};
+let {NAME, PASSWORD, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
 const all_fetch_fn = ()  => {
 	const test = async (foo) => {console.log('test')};
 	// linkのidとusernameが一致するものがある場合はupdateする
@@ -363,7 +356,7 @@ const all_fetch_fn = ()  => {
 		const pre_result = await (await fetch(make_get_param())).json();
 		// pre_resultが空の場合はエラーを投げる
 		if(pre_result.length === 0) throw new Error('条件に一致するデータがありませんでした');
-		hello_fetch_data = pre_result.message;
+		HELLO_FETCH_DATA = pre_result.message;
 		} catch (error) {
 			console.log(error);
 			ERROR_MESSAGE = error.message;
@@ -539,9 +532,7 @@ const all_fetch_fn = ()  => {
 		user_and_fetch_hello,
 	};
 };
-const all_fetch = all_fetch_fn();
-const {test,insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch;
-// all_fetch_fnと同様。エンドポイントに対するtestをまとめる
+const {test,insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch_fn();
 const all_test_fn = ()  => {
 	const test_db_init_only_set_name_password_test_mode = async () =>{
     (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
@@ -871,8 +862,37 @@ test_sample_exe5,
 }
 
 };
-const all_test = all_test_fn();
-const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test;
+const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test_fn();
+import { onMount } from 'svelte';
+import { afterUpdate } from 'svelte';
+import { isURL } from 'validator';
+// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
+$: {
+console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
+}
+onMount(async () => {
+	try {
+		await fetch_hello({});
+		await fetch_get_tags_for_autocomplete();	
+		await init_calendar();
+		// await init(JSON.parse(HELLO_FETCH_DATA[0]['data_json_str']['data1']));
+	} catch (error) {
+		console.log(error);		
+	}
+
+});	
+afterUpdate(async () => {
+	try {
+		// await fetch_hello({});
+		// await fetch_get_tags_for_autocomplete();	
+		// await init(JSON.parse(HELLO_FETCH_DATA[7][0]['data_json_str']['data1']));
+	} catch (error) {
+		console.log(error);		
+	}
+
+});
+
+
 </script>
 
 
@@ -891,7 +911,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 		ALL_DATA_LIST_INDEX: {ALL_DATA_LIST_INDEX}
 		ERROR_MESSAGE: {ERROR_MESSAGE}
 		<button on:click={toggle_calendar}>toggle_calendar</button>
-		{data_id_from_online}
+		DATA_ID_FROM_ONLINE: {DATA_ID_FROM_ONLINE}
 		<button on:click={() => add_event()}>add_event</button>
 		<button on:click={() => show_event()}>show_event</button>
 		<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
@@ -984,7 +1004,7 @@ const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_d
 	<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
 	{/each}
 	<ul>
-	{#each hello_fetch_data as item, index}
+	{#each HELLO_FETCH_DATA as item, index}
 		<br>
 		<br>
 
