@@ -15,12 +15,6 @@ const toggle_left_or_right_side = () => {
 	else if (IS_SHOW_LEFT && !IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [false, true];}
 	else if (!IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, true];}
 };
-// const obj = await app.$$.ctx;
-// const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
-// const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
-// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
-// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
-
 const init = (item, User_Name) => {
 	try {
 	init_calendar();
@@ -50,6 +44,13 @@ const all_event_check = () => {
 	time_fix_all_my_list_data1.forEach((item, idx) => {
 		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
 	});
+};
+const in_chrome_dev_tool = () => {
+	// const obj = await app.$$.ctx;
+	// const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
+	// const values = Object.values(obj);  // [1, 2, 3] // 値の配列を取得
+	// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
+	// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
 };
 
 
