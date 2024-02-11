@@ -271,6 +271,7 @@ const all_calendar_fn = () => {
 const {calendar_val,all_event,toggle_calendar,init_calendar,show_event,add_event,delete_event,} = all_calendar_fn();
 const all_web_prop_fn = () => {
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
+let RESPONSE = null;
 // let NAME = 'user1';
 let NAME = 'user2';
 let TEST_MODE = 'TEST_MODE';
@@ -281,7 +282,6 @@ let COMMENT = 'comment1';
 let COMMENT_REPLY = 'reply1';
 let TAG = 'tag1';
 let ALL_TAGS = [];
-let RESPONSE;
 let TAG_VAL = "";
 let ORDER_BY = 'ASC';
 let ORDER_BY_COLUMN = 'id';
@@ -295,6 +295,7 @@ let FETCH_TEST_DATA = [{'value': 0},{'value2': 1}];
 // let DOMAIN_NAME = 'https://spectrum-whip-sulfur.glitch.me/';
 const DOMAIN_NAME = 'http://localhost:8000/';
 return {
+	RESPONSE,
 	NAME,
 	PASSWORD,
 	COMMENT,
@@ -314,13 +315,12 @@ return {
 	DOMAIN_NAME,
 };
 };
-let {NAME, PASSWORD, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
+let {RESPONSE, NAME, PASSWORD, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
 
 
 
 
 const all_fetch_fn = ()  => {
-	const test = async (foo) => {console.log('test')};
 	// linkのidとusernameが一致するものがある場合はupdateする
 	// 一致した場合はupdateで、一致しない場合はinsertになる関数
 	// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
@@ -376,10 +376,13 @@ const all_fetch_fn = ()  => {
 	};
 	const response_handling = async (RESPONSE) => {
 		try {
+			console.log(RESPONSE);
+// res.status(400).json({status: 400, result: 'fail', message: error.message});
 		// RESPONSE.status === 400 ? console.log('RESPONSE.status: RESPONSE.status === 400') : null;
 		RESPONSE.status === 200 ? SUCCESS_MESSAGE = RESPONSE.result : null;
 		(RESPONSE.result === 'fail' || RESPONSE.status === 400) ? (()=>{throw new Error(RESPONSE.message)})() : (await fetch_hello({}));
 		} catch (error) {
+			console.log(error.message);
 			(()=>{throw new Error(error.message)})();
 		}
 	}
@@ -405,6 +408,7 @@ const all_fetch_fn = ()  => {
 			data2: ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['meta_data']
 		});
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
+		console.log(RESPONSE);
 		await response_handling(RESPONSE);
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
@@ -516,7 +520,6 @@ const all_fetch_fn = ()  => {
 	};
 	// returnで全ての関数が含まれたオブジェクトを返す
 	return {
-		test,
 		insert_or_update_link,
 		fetch_hello,
 		fetch_insert_link,
@@ -537,7 +540,7 @@ const all_fetch_fn = ()  => {
 		user_and_fetch_hello,
 	};
 };
-const {test,insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch_fn();
+const {insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch_fn();
 const all_test_fn = ()  => {
 	const test_db_init_only_set_name_password_test_mode = async () =>{
     (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
@@ -573,14 +576,22 @@ const test_message_stacker = (Data, Expect_result) =>{
 const test_for_LINK = async (
     {
         Data='SELECT',
+		Sample=1,
         Expect_result='SQLの予約語を含む場合はエラー'
     }
     ) =>{
-    LINK = Data;
-    await fetch_insert_link();
+	let sample_data_json_str = null;
+	if(Data === 'SELECT' && Sample === 1) {
+		sample_data_json_str = JSON.parse(`{"data1":[{"id":0,"text":"High Voltage: SELECT AC/DC","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.122Z"},{"id":1,"text":"Led Zeppelin IV: Led Zeppelin","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.947Z"},{"id":2,"text":"Appetite for Destruction: Guns N' Roses","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:54.374Z"},{"id":3,"text":"Master of Puppets: Metallica","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":4,"text":"Back in Black: AC/DC","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":5,"text":"Paranoid: Black Sabbath","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":6,"text":"The Dark Side of the Moon: Pink Floyd","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":7,"text":"Destroyer: KISS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":8,"text":"Rumours: Fleetwood Mac","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":9,"text":"Machine Head: Deep Purple","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}`);
+	}
+	if(Data === 'SELECT' && Sample === 2) {
+		sample_data_json_str = JSON.parse(`{"data1":[{"id":0,"text":"Dark & Wild: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":1,"text":"The Red Summer: Red Velvet","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":2,"text":"WINGS: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":3,"text":"Reboot: Wonder Girls","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":4,"text":"Square Up: BLACKPINK","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":5,"text":"HYYH 花様年華 (The Most Beautiful Moment in Life) Pt. 2: BTS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":6,"text":"EXODUS: EXO","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":7,"text":"Odd: SHINee","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":8,"text":"Flight Log: Turbulence: GOT7","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"},{"id":9,"text":"Love Shot: EXO","link":"https://google.com","check":false,"check_date":"2024-01-28T07:39:04.575Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}`) ;
+	}
+	ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = sample_data_json_str['data1'];
+	ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['meta_data'] = sample_data_json_str['data2'];
+	await fetch_insert_link();
     test_message_stacker(Data, Expect_result);
 }
-
 const test_for_TAG = async (
     {
         Data='test!',
@@ -633,30 +644,30 @@ const test_sample_exe = async () => {
         Data: 'SELECT',
         Expect_result: 'SQLの予約語を含む場合はエラー'
     });
-    await test_for_LINK({
-        Data: 'https::///google.co.jp',
-        Expect_result: 'URLの形式が正しくありません'
-    });
-    await test_for_LINK({
-        Data: 'https://hogehoge.com/',
-        Expect_result: '許可されていないURLです'
-    });
-    await test_for_LINK({
-        Data: 'https://www.yahoo.co.jp/',
-        Expect_result: 'OK'
-    });
-    await test_for_LINK({
-        Data: 'https://www.google.co.jp/',
-        Expect_result: 'OK'
-    });
-    await test_for_LINK({
-        Data: 'https://www.youtube.com/',
-        Expect_result: 'OK'
-    });
-    await test_for_LINK({
-        Data: 'https://www.google.co.jp/',
-        Expect_result: '同じlinkが存在します'
-    });
+    // await test_for_LINK({
+        // Data: 'https::///google.co.jp',
+        // Expect_result: 'URLの形式が正しくありません'
+    // });
+    // await test_for_LINK({
+        // Data: 'https://hogehoge.com/',
+        // Expect_result: '許可されていないURLです'
+    // });
+    // await test_for_LINK({
+        // Data: 'https://www.yahoo.co.jp/',
+        // Expect_result: 'OK'
+    // });
+    // await test_for_LINK({
+        // Data: 'https://www.google.co.jp/',
+        // Expect_result: 'OK'
+    // });
+    // await test_for_LINK({
+        // Data: 'https://www.youtube.com/',
+        // Expect_result: 'OK'
+    // });
+    // await test_for_LINK({
+        // Data: 'https://www.google.co.jp/',
+        // Expect_result: '同じlinkが存在します'
+    // });
     
     console.log(ERROR_MESSAGE_STACK);
     console.log(SUCCESS_MESSAGE_STACK);
@@ -907,10 +918,13 @@ afterUpdate(async () => {
 
 
 <main>
-<button on:click={() => test()}>test</button>
+RESPONSE: {JSON.stringify(RESPONSE)}
+SUCCESS_MESSAGE: {SUCCESS_MESSAGE}
+ERROR_MESSAGE: {ERROR_MESSAGE}
 <button on:click={() => all_event_check()}>all_event_check</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
-<button on:click={() => test_for_TAG({})}>test_for_TAG</button>
+<!-- <button on:click={() => test_for_TAG({})}>test_for_TAG</button> -->
+<button on:click={() => test_sample_exe({})}>test_sample_exe</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
 
 

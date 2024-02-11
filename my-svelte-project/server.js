@@ -1127,10 +1127,22 @@ const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形�
     // case reserved_words.includes(data2): return 'SQLの予約語を含む場合はエラー'; break;
     // case data2 === undefined: return 'data2が空です'; break;
     // case data2.desc === undefined: return 'data2.descが空です'; break;
+    const data1_error_check = (Data1) => {
+        console.log(Data1);
+        console.log(reserved_words);
+        switch(true) {
+            // ['apple', 'banana', 'mango', 'grape'].some(fruit => fruit.includes('an'))
+            case reserved_words.some(word => JSON.stringify(Data1).includes(word)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+            // case reserved_words.includes(JSON.stringify(Data1)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+            case Data1 === undefined: (()=>{throw new Error('data1が空です')})(); break;
+        }
+    };
+    data1_error_check(Data_Json_Str.data1);
     const data1_error_check_result = list_validation(Data_Json_Str.data1);
     const data2_error_check = (Data2) => {
         switch(true) {
-            case reserved_words.includes(Data2): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+            // case reserved_words.includes(Data2): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+            case reserved_words.some(word => JSON.stringify(Data2).includes(word)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
             case Data2 === undefined: (()=>{throw new Error('data2が空です')})(); break;
             case Data2.desc === undefined: (()=>{throw new Error('data2.descが空です')})(); break;
         }
