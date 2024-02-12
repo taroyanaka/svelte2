@@ -341,7 +341,7 @@ const all_fetch_fn = ()  => {
 	};
 	const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='id', REQ_TAG_PARAM, USER_PARAM}) => {
 		try {
-		console.log(REQ_TAG_PARAM);
+		// console.log(REQ_TAG_PARAM);
 		ORDER_BY = ORDER_BY_PARAM; // ? ORDER_BY_PARAM : 'DESC';
 		ORDER_BY_COLUMN = ORDER_BY_COLUMN_PARAM; // ? ORDER_BY_COLUMN_PARAM : 'links.id';
 		REQ_TAG = REQ_TAG_PARAM; // ? REQ_TAG_PARAM : null;
@@ -565,13 +565,23 @@ const test_db_init_on_end = async () =>{
     }
 }
 
+
+
 const test_message_stacker = (Data, Expect_result) =>{
+	function add_SUCESS_MESSAGE(New_Data) {
+		SUCCESS_MESSAGE_STACK = [...SUCCESS_MESSAGE_STACK, New_Data]
+	};
     SUCCESS_MESSAGE === 'success'
-        ? (console.log('OK'), SUCCESS_MESSAGE_STACK.push(['OK', (Data?Data+'は':'') + 'OK']))
-        : null;
+        // ? (console.log('OK'), SUCCESS_MESSAGE_STACK.push(['OK', (Data?Data+'は':'') + 'OK']))
+        ? (console.log('OK'), add_SUCESS_MESSAGE(['OK', (Data?Data+'は':'') + 'OK'])) : null;
+	function add_ERROR_MESSAGE_STACK(New_ERROR) {
+		// fruits = [...fruits, newFruit];
+		ERROR_MESSAGE_STACK = [...ERROR_MESSAGE_STACK, New_ERROR];
+	}
     ERROR_MESSAGE === Expect_result
-        ? (console.log('OK'), ERROR_MESSAGE_STACK.push(['OK', Expect_result]))
-        : console.log('NG');
+        // ? (console.log('OK'), ERROR_MESSAGE_STACK.push(['OK', Expect_result]))
+        ? (console.log('OK'), add_ERROR_MESSAGE_STACK(["OK", Expect_result]))
+			 : console.log('NG');
 }
 const test_for_LINK = async (
     {
@@ -890,28 +900,21 @@ import { isURL } from 'validator';
 
 $: {
 console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
-}
+};
 onMount(async () => {
 	try {
 		await fetch_hello({});
-		await fetch_get_tags_for_autocomplete();	
-		await init_calendar();
-		// await init(JSON.parse(HELLO_FETCH_DATA[0]['data_json_str']['data1']));
-	} catch (error) {
-		console.log(error);		
-	}
-
-});	
-afterUpdate(async () => {
-	try {
-		// await fetch_hello({});
 		// await fetch_get_tags_for_autocomplete();	
-		// await init(JSON.parse(HELLO_FETCH_DATA[7][0]['data_json_str']['data1']));
-	} catch (error) {
-		console.log(error);		
-	}
-
-});
+		// await init_calendar();
+		// await init(JSON.parse(HELLO_FETCH_DATA[0]['data_json_str']['data1']));
+	} catch (error) {}
+});	
+// afterUpdate(async () => {
+	// try {
+	// } catch (error) {
+		// console.log(error);		
+	// }
+// });
 
 
 </script>
@@ -919,14 +922,8 @@ afterUpdate(async () => {
 
 <main>
 RESPONSE: {JSON.stringify(RESPONSE)}
-SUCCESS_MESSAGE: {SUCCESS_MESSAGE}
-ERROR_MESSAGE: {ERROR_MESSAGE}
-{#each ERROR_MESSAGE_STACK as [message, idx]}
-	<div>{idx}: {message[0]} {message[1]}</div>
-{/each}
-{#each SUCCESS_MESSAGE_STACK as [message, idx]}
-	<div>{idx}: {message}</div>
-{/each}
+SUCCESS_MESSAGE_STACK: {JSON.stringify(SUCCESS_MESSAGE_STACK)}
+ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 <button on:click={() => all_event_check()}>all_event_check</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 <!-- <button on:click={() => test_for_TAG({})}>test_for_TAG</button> -->
@@ -961,8 +958,8 @@ ERROR_MESSAGE: {ERROR_MESSAGE}
 {#each ALL_DATA_LIST as outer_list, outer_idx}
 		<div class="list">
 		EDIT_MODE: 
-		<input type="radio" class="EDIT_MODE" id="edit_mode_on" name="EDIT_MODE" value="on" on:change={() => EDIT_MODE = true} checked={EDIT_MODE} />
-		<input type="radio" class="EDIT_MODE" id="edit_mode_off" name="EDIT_MODE" value="off" on:change={() => EDIT_MODE = false} checked={!EDIT_MODE} />
+		<input type="radio" class="EDIT_MODE" value="on" on:change={() => EDIT_MODE = true} checked={EDIT_MODE} />
+		<input type="radio" class="EDIT_MODE" value="off" on:change={() => EDIT_MODE = false} checked={!EDIT_MODE} />
 		<!-- <button on:click={() => insert_or_update_link(data_id_from_online)} class="insert_or_update_link">insert_or_update_link</button> -->
 <button on:click={() => insert_or_update_link()} class="insert_or_update_link">insert_or_update_link</button>
 		<!-- <button on:click={() => make_new_list({})} class="make_new_list">make_new_list</button> -->
@@ -995,7 +992,7 @@ ERROR_MESSAGE: {ERROR_MESSAGE}
 				<button on:click={() => insert_list({ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx})}>insert_list</button>
 				<button on:click={() => delete_list({ALL_DATA_LIST_Idx: ALL_DATA_LIST_INDEX, List_Idx: idx})}>delete_list</button>
 			{/if}
-			<input type="checkbox" class="checkbox" id="checkbox1" name="checkbox1" value="1" on:change={() => check_fn(idx)} checked={item.check} />
+			<input type="checkbox" class="checkbox" value="1" on:change={() => check_fn(idx)} checked={item.check} />
 		</li>
 		{/each}
 		</ul>
@@ -1016,9 +1013,12 @@ ERROR_MESSAGE: {ERROR_MESSAGE}
 <!-- <div class={is_only_one_side_open === 'left' ? '' : 'hidden'}> -->
 <div class={IS_SHOW_RIGHT ? '' : 'hidden'}>
 <div class="right_side">
+	<form>
 	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
-	name: <input bind:value={NAME} type="text" placeholder="name">
-	password: <input bind:value={PASSWORD} type="password" placeholder="password">
+	name: <input bind:value={NAME} type="text" placeholder="name" autocomplete="username">
+
+	password: <input bind:value={PASSWORD} type="password" placeholder="password" autocomplete="current-password">
+	</form>
 	<div>
 
 <!-- DATA1: <textarea bind:value={DATA1} placeholder="DATA1" class="link"></textarea> -->
@@ -1046,8 +1046,8 @@ ERROR_MESSAGE: {ERROR_MESSAGE}
 			</div>
 
 			<div>
-				<input bind:this={TAG_VAL} list="autocomplete_list" type="text" name="" id="hoge" bind:value={TAG} placeholder="tag" on:input={fetch_get_tags_for_autocomplete}>
-				<datalist id="autocomplete_list">
+				<input bind:this={TAG_VAL} list="autocomplete_list" type="text" bind:value={TAG} placeholder="tag" on:input={fetch_get_tags_for_autocomplete}>
+				<datalist>
 					{#each ALL_TAGS as item, index}
 					<option value={item.tag}>
 					{/each}
@@ -1089,7 +1089,7 @@ ERROR_MESSAGE: {ERROR_MESSAGE}
 			{/each}
 			<button on:click={fetch_like_increment_or_decrement(item.id)}>like_increment_or_decrement</button>
 			<div>
-				<input type="text" name="" id="" bind:value={COMMENT} placeholder="comment">
+				<input type="text" bind:value={COMMENT} placeholder="comment">
 				<button on:click={fetch_insert_comment(item.id)}>fetch_insert_comment</button>
 			</div>
 			<ul class="comment_zone">{#each item.comments_and_replies as comments_and_reply, INDEX}
