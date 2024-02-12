@@ -921,9 +921,16 @@ afterUpdate(async () => {
 RESPONSE: {JSON.stringify(RESPONSE)}
 SUCCESS_MESSAGE: {SUCCESS_MESSAGE}
 ERROR_MESSAGE: {ERROR_MESSAGE}
+{#each ERROR_MESSAGE_STACK as [message, idx]}
+	<div>{idx}: {message[0]} {message[1]}</div>
+{/each}
+{#each SUCCESS_MESSAGE_STACK as [message, idx]}
+	<div>{idx}: {message}</div>
+{/each}
 <button on:click={() => all_event_check()}>all_event_check</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 <!-- <button on:click={() => test_for_TAG({})}>test_for_TAG</button> -->
+<button on:click={() => test_sample_exe2({})}>test_sample_exe2</button>
 <button on:click={() => test_sample_exe({})}>test_sample_exe</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
 
@@ -933,7 +940,6 @@ ERROR_MESSAGE: {ERROR_MESSAGE}
 	<div class={IS_SHOW_LEFT ? '' : 'hidden'}>
 	<div class="left_side">
 		ALL_DATA_LIST_INDEX: {ALL_DATA_LIST_INDEX}
-		ERROR_MESSAGE: {ERROR_MESSAGE}
 		<button on:click={toggle_calendar}>toggle_calendar</button>
 		DATA_ID_FROM_ONLINE: {DATA_ID_FROM_ONLINE}
 		<button on:click={() => add_event()}>add_event</button>
