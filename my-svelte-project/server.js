@@ -1,4 +1,5 @@
 const test_mode = () => true;
+// const test_mode = () => false;
 
 // const R = require('ramda');
 // const validator = require('validator');
@@ -253,7 +254,18 @@ const error_response = (res, status_code, error_message) => res.status(status_co
 // test_mode() === trueかつNAMEとPASSWORDが一致し、test_modeがTEST_MODEである時にportal_test.sqlite3を初期化する
 app.post('/test_db_init', (req, res) => {
 try {
-    req.body.test_mode === 'TEST_MODE' ? null : (()=>{throw new Error('test_modeがTEST_MODEでは無い')})();
+    console.log('test_db_init start 0');
+    const user = get_user_with_permission(req);
+    // INSERT INTO user_permission (id, permission,のpermissionが'test'でない場合はエラーを返す
+    user || user.user_permission === 'test' ? console.log("user_permission error") : (()=>{throw new Error('test用のpermissionの権限がありません')})();
+    // userがtestuserでは無い場合はエラーを返す
+    req.body.name === 'testuser' ? null : (()=>{throw new Error('nameのエラー')})();
+    // userがtestuserである場合は、passwordが適合するかチェックする
+    req.body.password === 'duct_mean_fuckst1ck' ? null : (()=>{throw new Error('test用のパスワードでは無い')})();
+
+
+    console.log('test_db_init start');
+    req.body.test_mode === 'TEST_MODE' ? console.log("TEST_MODE error") : (()=>{throw new Error('test_modeがTEST_MODEでは無い')})();
     // overwrite_password関数はID/PASSWORDの秘匿化のための応急処置として使用する
     // ローカル環境でも.dataという隠しフォルダを使うことで、秘匿化を実現する
     // glitch.comにおいてpravateな情報を扱う場合は、.dataフォルダに格納する
@@ -262,13 +274,21 @@ try {
 
     // console.log(req.body.test_mode);
     // console.log(overwrite_password_FOR_TEST(req));
+    console.log('test_db_init progress 1');
     const test_can = req.body.test_mode === 'TEST_MODE'
         ? 'OK'
         : (()=>{throw new Error('権限がありません')})();
+
+    console.log('test_db_init progress 2');
+
+    console.log(req.body.test_mode_close);
+    (test_mode() === true && test_can === 'OK' && req.body.test_mode_close !== undefined && req.body.test_mode_close === 'TEST_MODE_CLOSE') ? db_close2(db) : null;
+    console.log('test_db_init progress 4');
+
     // test_mode() === trueかつNAMEとPASSWORDが一致し、test_modeがTEST_MODEである時にportal_test.sqlite3を初期化する
     (test_mode() === true && test_can === 'OK') ? db_init2(db) : (()=>{throw new Error('何かのエラー')})();
+    console.log('test_db_init progress 3');
     // (test_mode() === true) ? db_init2(db) : (()=>{throw new Error('何かのエラー')})();
-    (req.body.test_mode_close !== undefined && req.body.test_mode_close) === 'TEST_MODE_CLOSE' ? db_close2(db) : null;
     res.status(200)
         .json({result: 'success'
             ,status: 200

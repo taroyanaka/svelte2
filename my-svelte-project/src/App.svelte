@@ -274,10 +274,10 @@ const all_web_prop_fn = () => {
 let RESPONSE = null;
 // let NAME = 'user1';
 let NAME = 'user2';
+let PASSWORD = 'user_pass2';
 let TEST_MODE = 'TEST_MODE';
 // let TEST_MODE = 'PRODUCTION_MODE';
 // let PASSWORD = 'user_pass1';
-let PASSWORD = 'user_pass2';
 let COMMENT = 'comment1';
 let COMMENT_REPLY = 'reply1';
 let TAG = 'tag1';
@@ -298,6 +298,7 @@ return {
 	RESPONSE,
 	NAME,
 	PASSWORD,
+	TEST_MODE,
 	COMMENT,
 	COMMENT_REPLY,
 	TAG,
@@ -315,12 +316,20 @@ return {
 	DOMAIN_NAME,
 };
 };
-let {RESPONSE, NAME, PASSWORD, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
+let {RESPONSE, NAME, PASSWORD, TEST_MODE, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
 
 
 
 
 const all_fetch_fn = ()  => {
+	const get_POST_object = (BODY_OBJ) => {
+		console.log(BODY_OBJ);
+		return {
+		method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(BODY_OBJ)
+		}
+	};
 	// linkのidとusernameが一致するものがある場合はupdateする
 	// 一致した場合はupdateで、一致しない場合はinsertになる関数
 	// server sideでLink_idとuser_idの一致は確認しているので、ここではupdateのLink_idとuser_idの一致を確認する必要はない
@@ -365,13 +374,6 @@ const all_fetch_fn = ()  => {
 		} catch (error) {
 			console.log(error);
 			ERROR_MESSAGE = error.message;
-		}
-	};
-	const get_POST_object = (BODY_OBJ) => {
-		return {
-		method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(BODY_OBJ)
 		}
 	};
 	const response_handling = async (RESPONSE) => {
@@ -472,12 +474,17 @@ const all_fetch_fn = ()  => {
 		console.log(error);
 		}
 	};
-	const fetch_get_tags_for_autocomplete = async () => {
-		const json = await (await fetch(DOMAIN_NAME+'get_tags_for_autocomplete', get_POST_object({ name: NAME, password: PASSWORD })))
-						.json();
-		const RES = await json;
-		ALL_TAGS = await RES.message;
-	};
+const fetch_get_tags_for_autocomplete = async () => {
+try {
+RESPONSE = await (await fetch(DOMAIN_NAME+'get_tags_for_autocomplete', get_POST_object({ name: NAME, password: PASSWORD }))).json();
+await response_handling(RESPONSE);
+if(RESPONSE.message){
+	// ALL_TAGS = RESPONSE.message.map((item) => item.tag);
+	ALL_TAGS = RESPONSE.message;
+}
+// ALL_TAGS = RESPONSE.message;
+} catch (error) {ERROR_MESSAGE = error.message;}
+};
 	const remove_error_message = () => ERROR_MESSAGE = "";
 	// <button on:click={() => ORDER_BY_COLUMN === 'links.id' ? ORDER_BY_COLUMN = 'created_at' : ORDER_BY_COLUMN === 'created_at' ? ORDER_BY_COLUMN = 'updated_at' : ORDER_BY_COLUMN = 'links.id'}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>
 	// const fetch_hello = async ({ORDER_BY_PARAM='DESC', ORDER_BY_COLUMN_PARAM='links.id', REQ_TAG_PARAM, USER_PARAM}) => {
@@ -520,6 +527,7 @@ const all_fetch_fn = ()  => {
 	};
 	// returnで全ての関数が含まれたオブジェクトを返す
 	return {
+		get_POST_object,
 		insert_or_update_link,
 		fetch_hello,
 		fetch_insert_link,
@@ -540,31 +548,36 @@ const all_fetch_fn = ()  => {
 		user_and_fetch_hello,
 	};
 };
-const {insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch_fn();
+const {get_POST_object,insert_or_update_link,fetch_hello,fetch_insert_link,fetch_delete_link,fetch_like_increment_or_decrement,fetch_insert_comment,fetch_delete_comment,fetch_insert_comment_reply,fetch_delete_comment_reply,fetch_insert_tag,fetch_copy_insert_link,fetch_get_collect_value_for_test,fetch_get_tags_for_autocomplete,remove_error_message,order_by_column_and_fetch_hello,order_by_and_fetch_hello,req_tag_and_fetch_hello,user_and_fetch_hello,} = all_fetch_fn();
 const all_test_fn = ()  => {
 	const test_db_init_only_set_name_password_test_mode = async () =>{
     (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
     console.log('success');
 }
-const test_db_init_on_start = async () =>{
+const test_db_init = async (Start_Or_End) =>{
     try {
+	console.log(Start_Or_End);
+	console.log("test_db_init 1");
     (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
-    RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: TEST_MODE }))).json()
-    RESPONSE.result === 'fail' ? (()=>{throw new Error(RESPONSE.error)})() : null;
-    } catch (error) {
-    ERROR_MESSAGE = error.message;
-    }
-}
-const test_db_init_on_end = async () =>{
-    try {
-    (NAME = 'testuser',PASSWORD = 'duct_mean_fuckst1ck',TEST_MODE = 'TEST_MODE');
-    RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: TEST_MODE }))).json()
-    RESPONSE.result === 'fail' ? (()=>{throw new Error(RESPONSE.error)})() : null;
-    } catch (error) {
-    ERROR_MESSAGE = error.message;
-    }
-}
+	console.log("test_db_init 2");
+	if(Start_Or_End === "start"){
+		RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: "TEST_MODE" }))).json();
 
+	};
+	if(Start_Or_End === "end"){
+		RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: "TEST_MODE", test_mode_close: 'TEST_MODE_CLOSE' }))).json();
+	};
+	console.log("test_db_init 3");
+	console.log(RESPONSE);
+	await response_handling(RESPONSE);
+
+    // RESPONSE = await (await fetch(DOMAIN_NAME+'test_db_init', get_POST_object({ name: NAME, password: PASSWORD, test_mode: TEST_MODE }))).json();
+	// console.log(RESPONSE);
+    // RESPONSE.result === 'fail' ? (()=>{throw new Error(RESPONSE.error)})() : null;
+    } catch (error) {
+    ERROR_MESSAGE = error.message;
+    }
+}
 
 
 const test_message_stacker = (Data, Expect_result) =>{
@@ -649,36 +662,18 @@ const test_for_LIKE_INCREMENT_OR_DECREMENT = async (
 }
 
 const test_sample_exe = async () => {
-    await test_db_init_on_start();
+    await test_db_init("start");
     await test_for_LINK({
         Data: 'SELECT',
+		Sample: 1,
         Expect_result: 'SQLの予約語を含む場合はエラー'
     });
-    // await test_for_LINK({
-        // Data: 'https::///google.co.jp',
-        // Expect_result: 'URLの形式が正しくありません'
-    // });
-    // await test_for_LINK({
-        // Data: 'https://hogehoge.com/',
-        // Expect_result: '許可されていないURLです'
-    // });
-    // await test_for_LINK({
-        // Data: 'https://www.yahoo.co.jp/',
-        // Expect_result: 'OK'
-    // });
-    // await test_for_LINK({
-        // Data: 'https://www.google.co.jp/',
-        // Expect_result: 'OK'
-    // });
-    // await test_for_LINK({
-        // Data: 'https://www.youtube.com/',
-        // Expect_result: 'OK'
-    // });
-    // await test_for_LINK({
-        // Data: 'https://www.google.co.jp/',
-        // Expect_result: '同じlinkが存在します'
-    // });
-    
+    await test_for_LINK({
+        Data: 'SELECT',
+		Sample: 2,
+        Expect_result: 'SQLの予約語を含む場合はエラー'
+    });
+
     console.log(ERROR_MESSAGE_STACK);
     console.log(SUCCESS_MESSAGE_STACK);
 }
@@ -873,8 +868,7 @@ const test_sample_exe5 = async () => {
 return {
 test_message_stacker,
 test_db_init_only_set_name_password_test_mode,
-test_db_init_on_start,
-test_db_init_on_end,
+test_db_init,
 test_for_LINK,
 test_for_TAG,
 test_for_COMMENT,
@@ -888,7 +882,7 @@ test_sample_exe5,
 }
 
 };
-const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init_on_start,test_db_init_on_end,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test_fn();
+const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test_fn();
 
 
 
@@ -904,17 +898,18 @@ console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
 onMount(async () => {
 	try {
 		await fetch_hello({});
-		// await fetch_get_tags_for_autocomplete();	
+		await fetch_get_tags_for_autocomplete();
 		// await init_calendar();
 		// await init(JSON.parse(HELLO_FETCH_DATA[0]['data_json_str']['data1']));
 	} catch (error) {}
 });	
-// afterUpdate(async () => {
-	// try {
-	// } catch (error) {
-		// console.log(error);		
-	// }
-// });
+afterUpdate(async () => {
+	try {
+		// await fetch_get_tags_for_autocomplete();
+	} catch (error) {
+		console.log(error);		
+	}
+});
 
 
 </script>
@@ -927,7 +922,14 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 <button on:click={() => all_event_check()}>all_event_check</button>
 <button on:click={() => test_db_init_only_set_name_password_test_mode()}>test_db_init_only_set_name_password_test_mode</button>
 <!-- <button on:click={() => test_for_TAG({})}>test_for_TAG</button> -->
+<button on:click={() => test_sample_exe({})}>test_sample_exe</button>
 <button on:click={() => test_sample_exe2({})}>test_sample_exe2</button>
+<button on:click={() => test_sample_exe3({})}>test_sample_exe3</button>
+<button on:click={() => test_sample_exe4({})}>test_sample_exe4</button>
+<button on:click={() => test_sample_exe5({})}>test_sample_exe5</button>
+<button on:click={() => test_db_init({})}>test_db_init</button>
+<button on:click={() => test_db_init("start")}>test_db_init_start</button>
+<button on:click={() => test_db_init("end")}>test_db_init_end</button>
 <button on:click={() => test_sample_exe({})}>test_sample_exe</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
 
@@ -1030,6 +1032,7 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
 		<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>		
 	</div>
+	<!-- {ALL_TAGS} -->
 	{#each ALL_TAGS as item, index}
 	<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
 	{/each}
@@ -1038,10 +1041,10 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 		<br>
 		<br>
 
-		<li>		
+		<li>
 			<div>
 				{#each item.tags as tags, INDEX}
-				<button on:click={() => req_tag_and_fetch_hello(tags.tag)}>{tags.tag}</button>
+				<button on:click={() => req_tag_and_fetch_hello(tags)}>{tags}</button>
 				{/each}
 			</div>
 
@@ -1053,7 +1056,6 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 					{/each}
 				</datalist>
 				<button on:click={fetch_insert_tag(item.id)}>fetch_insert_tag</button>
-				{item.id}
 			</div>
 			<ul>
 			<li>
