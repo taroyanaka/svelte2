@@ -1,4 +1,6 @@
 <script>
+let ERROR_OF_TAG = '';
+
 let HELLO_FETCH_DATA = [];
 let DATA_ID_FROM_ONLINE = null;
 // let DEV_MODE = true;
@@ -52,8 +54,6 @@ const in_chrome_dev_tool = () => {
 	// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
 	// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
 };
-
-
 
 
 
@@ -267,8 +267,121 @@ const all_calendar_fn = () => {
         add_event,
         delete_event,
     }
-}
+};
 const {calendar_val,all_event,toggle_calendar,init_calendar,show_event,add_event,delete_event,} = all_calendar_fn();
+const all_validation_fn = () => {
+	const error_check_insert_tag = (tag) => {
+		const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
+		// 空白を含むかチェックする1行の関数。大文字の空白もチェックする。含まれていたらtrueを返す
+		const checkForSpaces = (tag) => [' ', '　'].some((space) => tag.includes(space));
+		// 記号が含まれているかチェックする1行の関数。含まれていたらtrueを返す
+		const checkForSymbols = (tag) => {
+			const symbols = ['-', '#', '!', '$', '@', '%', '^', '&', '*', '(', ')', '_', '+', '|', '~', '=', '`', '{', '}', '[', ']', ':', '"', ';', '\'', '<', '>', '?', ',', '.', '/'];
+			return symbols.some((symbol) => tag.includes(symbol));
+		};
+		switch (true) {
+			case tag === undefined: return 'tagが空です'; break;
+			case checkForSpaces(tag): return '空白を含む場合はエラー'; break;
+			case checkForSymbols(tag): return '記号を含む場合はエラー'; break;
+			case tag.length === 0: return '0文字はエラー'; break;
+			case tag.length > 7: return '7文字以上はエラー'; break;
+			case reserved_words.includes(tag): return 'SQLの予約語を含む場合はエラー'; break;
+			default: return 'OK'; break;
+		}
+	};
+
+        const error_check_insert_comment = (comment, DATA_LIMIT) => {
+
+            const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
+            const checkForSpaces = (comment) => [' ', '　'].some((space) => comment.includes(space));
+            // 記号が含まれているかチェックする1行の関数。含まれていたらtrueを返す
+            const checkForSymbols = (comment) => {
+                const symbols = ['-', '#', '!', '$', '@', '%', '^', '&', '*', '(', ')', '_', '+', '|', '~', '=', '`', '{', '}', '[', ']', ':', '"', ';', '\'', '<', '>', '?', ',', '.', '/'];
+                return symbols.some((symbol) => comment.includes(symbol));
+            };
+            switch (true) {
+                case comment === undefined: return 'commentが空の場合はエラー'; break;
+                case comment.length > DATA_LIMIT: return 'commentの文字数がdata_limitを超える場合はエラー'; break;
+                case comment.length === 0: return '0文字の場合はエラー'; break;
+                case checkForSpaces(comment): return '空白を含む場合はエラー'; break;
+                case checkForSymbols(comment): return '記号を含む場合はエラー'; break;
+                case comment.length > 300: return '300文字以上はエラー'; break;
+                case reserved_words.includes(comment): return 'SQLの予約語を含む場合はエラー'; break;
+                default: return 'OK'; break;
+            }
+        }
+        const error_check_insert_comment_reply = (comment_reply, DATA_LIMIT) => {
+
+            const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
+            const checkForSpaces = (tag) => [' ', '　'].some((space) => tag.includes(space));
+            // 記号が含まれているかチェックする1行の関数。含まれていたらtrueを返す
+            const checkForSymbols = (comment_reply) => {
+                const symbols = ['-', '#', '!', '$', '@', '%', '^', '&', '*', '(', ')', '_', '+', '|', '~', '=', '`', '{', '}', '[', ']', ':', '"', ';', '\'', '<', '>', '?', ',', '.', '/'];
+                return symbols.some((symbol) => comment_reply.includes(symbol));
+            };
+            switch (true) {
+                case comment_reply === undefined: return 'comment_replyが空の場合はエラー'; break;
+                case comment_reply.length > DATA_LIMIT: return 'comment_replyの文字数がdata_limitを超える場合はエラー'; break;
+                case comment_reply.length === 0: return '0文字の場合はエラー'; break;
+                case checkForSpaces(comment_reply): return '空白を含む場合はエラー'; break;
+                case checkForSymbols(comment_reply): return '記号を含む場合はエラー'; break;
+                case comment_reply.length > 10: return '10文字以上はエラー'; break;
+                case reserved_words.includes(comment_reply): return 'SQLの予約語を含む場合はエラー'; break;
+                default: return 'OK'; break;
+            }
+        }
+        const error_check_insert_link = (link) => {
+            const WHITE_LIST_URL_ARRAY = [
+                'https://yanaka.dev/',
+                'https://www.yahoo.co.jp/',
+                'https://www.google.co.jp/',
+                'https://www.youtube.com/',
+            ];
+            const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
+            const is_url = (url) => (/^(https?):\/\/[^\s/$.?#].[^\s]*$/i).test(url);
+            const is_include_WHITE_LIST_URL = (target_url_str) => WHITE_LIST_URL_ARRAY.some((WHITE_LIST_URL) => target_url_str.startsWith(WHITE_LIST_URL));
+
+            !is_url(link) ? console.log('URLの形式が正しくありません') : null;
+
+            switch (true) {
+                case link === undefined: return 'linkが空です'; break;
+                case reserved_words.includes(link): return 'SQLの予約語を含む場合はエラー'; break;
+                case link.length > 2000: return 'URLが長すぎます'; break;
+                case !is_url(link): return 'URLの形式が正しくありません'; break;
+                case !is_include_WHITE_LIST_URL(link): return '許可されていないURLです'; break;
+                default: return 'OK'; break;
+            }
+        };
+
+        const error_check_insert_data = (data_json_str) => {
+            switch (true) {
+                case data_json_str === undefined: return 'dataが空です'; break;
+                case data_json_str.length > 10000: return 'dataが長すぎます'; break;
+                default: return 'OK'; break;
+            }
+        };
+        // all_validation_checking_client_server_bothにそれぞれの関数を入れる
+        const all_validation_checking_client_server_both = {
+            'validation_insert_tag': error_check_insert_tag,
+            'validation_insert_comment': error_check_insert_comment,
+            'validation_insert_comment_reply': error_check_insert_comment_reply,
+            'validation_insert_link': error_check_insert_link,
+            'validation_insert_data': error_check_insert_data,
+        };
+        // 以下のように利用する
+        // all_validation_checking_client_server_both['validation_insert_tag']('test', 10);
+////////////////////////////////////////////////// ---------validation--------- /////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	return {
+		error_check_insert_tag,
+		error_check_insert_comment,
+		error_check_insert_comment_reply,
+		error_check_insert_link,
+		error_check_insert_data,
+	};
+};
+const {error_check_insert_tag,error_check_insert_comment,error_check_insert_comment_reply,error_check_insert_link,error_check_insert_data,} = all_validation_fn();
 const all_web_prop_fn = () => {
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 let RESPONSE = null;
@@ -460,6 +573,7 @@ const all_fetch_fn = ()  => {
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
 	const fetch_insert_tag = async (LINK_ID, TAG_PARAM) => {
+		console.log("fetch_insert_tag");
 		try {
 		TAG = TAG_PARAM || TAG_VAL.value;
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_tag', get_POST_object({ name: NAME, password: PASSWORD, link_id: LINK_ID, tag: TAG }))).json();
@@ -1049,13 +1163,27 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 			</div>
 
 			<div>
-				<input bind:this={TAG_VAL} list="autocomplete_list" type="text" bind:value={TAG} placeholder="tag" on:input={fetch_get_tags_for_autocomplete}>
+<input bind:this={TAG_VAL} list="autocomplete_list" type="text" bind:value={TAG} placeholder="tag"
+	on:input={()=>{
+		if(error_check_insert_tag(TAG) !== 'OK'){ERROR_OF_TAG = error_check_insert_tag(TAG)}
+		else{ERROR_OF_TAG = ''};
+		ERROR_OF_TAG === '' ? fetch_get_tags_for_autocomplete() : null;
+	}}
+>
+{ERROR_OF_TAG}
 				<datalist>
 					{#each ALL_TAGS as item, index}
 					<option value={item.tag}>
 					{/each}
 				</datalist>
-				<button on:click={fetch_insert_tag(item.id)}>fetch_insert_tag</button>
+				<!-- <button on:click={fetch_insert_tag(item.id)}>fetch_insert_tag</button> -->
+				<!-- error_check_insert_tag('test!', '記号を含む場合はエラー'); -->
+				<!-- <button on:click={()=> {check_any() ? console.log(1) : console.log(2)}}>fetch_insert_tag</button> -->
+<button on:click={()=>{
+let res = error_check_insert_tag(TAG);
+	res === 'OK' ? fetch_insert_tag(item.id) : console.log(res);
+}}>fetch_insert_tag</button>
+				<!-- <button on:click={error_check_insert_tag ? fetch_insert_tag(item.id) : null}>fetch_insert_tag</button> -->
 			</div>
 			<ul>
 			<li>
