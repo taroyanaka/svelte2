@@ -1163,14 +1163,13 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 			</div>
 
 			<div>
-<input bind:this={TAG_VAL} list="autocomplete_list" type="text" bind:value={TAG} placeholder="tag"
-	on:input={()=>{
-		if(error_check_insert_tag(TAG) !== 'OK'){ERROR_OF_TAG = error_check_insert_tag(TAG)}
-		else{ERROR_OF_TAG = ''};
-		ERROR_OF_TAG === '' ? fetch_get_tags_for_autocomplete() : null;
-	}}
->
-{ERROR_OF_TAG}
+	<input bind:this={TAG_VAL} list="autocomplete_list" type="text" bind:value={TAG} placeholder="tag"
+		on:input={()=>{
+			ERROR_OF_TAG = error_check_insert_tag(TAG) !== 'OK' ? error_check_insert_tag(TAG) : '';
+			ERROR_OF_TAG === '' ? fetch_get_tags_for_autocomplete() : null;
+		}}
+	>
+	{ERROR_OF_TAG}
 				<datalist>
 					{#each ALL_TAGS as item, index}
 					<option value={item.tag}>
