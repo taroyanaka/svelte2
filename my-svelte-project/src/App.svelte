@@ -1282,12 +1282,7 @@ let res = error_check_insert_tag(TAG);
 					}}
 				>
 			{ERROR_OF_COMMENT}
-			<button on:click={fetch_insert_comment(item.id)}
-				on:input={()=>
-				{
-					// ERROR_OF_COMMENT = error_check_insert_comment(COMMENT) !== 'OK' ? error_check_insert_comment(COMMENT) : '';
-				}}
-			>fetch_insert_comment</button>
+			<button on:click={fetch_insert_comment(item.id)}>fetch_insert_comment</button>
 			</div>
 			<ul class="comment_zone">{#each item.comments_and_replies as comments_and_reply, INDEX}
 				<li>
