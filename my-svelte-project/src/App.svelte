@@ -1,54 +1,50 @@
 <script>
+let ERROR_OF_COMMENT_REPLY = '';
+let ERROR_OF_COMMENT = '';
 let ERROR_OF_NAME = '';
 let ERROR_OF_PASSWORD = '';
 
 function validate_name(name) {
 	const validate_name_switch = (Name) => {
 		switch (true) {
-			case name === '':
-			case name === undefined:
-			case name === null:
+			case Name === '':
+			case Name === undefined:
+			case Name === null:
 				throw new Error('ユーザー名が未入力です');
-			case name.length > 36:
+			case Name.length > 36:
 				throw new Error('ユーザー名は36文字以下で入力してください');
-			case name.length < 4:
+			case Name.length < 4:
 				throw new Error('ユーザー名は4文字以上で入力してください');
-			case name.includes(' '):
-			case name.includes('　'):
+			case Name.includes(' '):
+			case Name.includes('　'):
 				throw new Error('ユーザー名に空白文字が含まれています');
 			default:
 				return "OK";
 		}
 	}
-	try {
-		return validate_name_switch(name);
-	} catch (error) {
-		return error.message;
-	}
+	try {return validate_name_switch(name);	}
+	catch (error) {return error.message;}
 }
 function validate_password(password) {
-	const validate_password_switch = (password) => {
+	const validate_password_switch = (Password) => {
 		switch (true) {
-			case password === '':
-			case password === undefined:
-			case password === null:
+			case Password === '':
+			case Password === undefined:
+			case Password === null:
 				throw new Error('パスワードが未入力です');
-			case password.length > 36:
+			case Password.length > 36:
 				throw new Error('パスワードは36文字以下で入力してください');
-			case password.length < 4:
+			case Password.length < 4:
 				throw new Error('パスワードは4文字以上で入力してください');
-			case password.includes(' '):
-			case password.includes('　'):
+			case Password.includes(' '):
+			case Password.includes('　'):
 				throw new Error('パスワードに空白文字が含まれています');
 			default:
 				return "OK";
 		}
 	}
-	try {
-		return validate_password_switch(password);
-	} catch (error) {
-		return error.message;
-	}
+	try {return validate_password_switch(password);
+	} catch (error) {return error.message;}
 }
 
 let ERROR_OF_TAG = '';
@@ -342,7 +338,7 @@ const all_validation_fn = () => {
 		}
 	};
 
-        const error_check_insert_comment = (comment, DATA_LIMIT) => {
+        const error_check_insert_comment = (comment, DATA_LIMIT=1000) => {
 
             const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
             const checkForSpaces = (comment) => [' ', '　'].some((space) => comment.includes(space));
@@ -1279,8 +1275,19 @@ let res = error_check_insert_tag(TAG);
 			{/each}
 			<button on:click={fetch_like_increment_or_decrement(item.id)}>like_increment_or_decrement</button>
 			<div>
-				<input type="text" bind:value={COMMENT} placeholder="comment">
-				<button on:click={fetch_insert_comment(item.id)}>fetch_insert_comment</button>
+				<input type="text" bind:value={COMMENT} placeholder="comment"
+					on:input={()=>{
+						// const error_check_insert_comment = (comment, DATA_LIMIT) 
+						ERROR_OF_COMMENT = error_check_insert_comment(COMMENT) !== 'OK' ? error_check_insert_comment(COMMENT) : '';
+					}}
+				>
+			{ERROR_OF_COMMENT}
+			<button on:click={fetch_insert_comment(item.id)}
+				on:input={()=>
+				{
+					// ERROR_OF_COMMENT = error_check_insert_comment(COMMENT) !== 'OK' ? error_check_insert_comment(COMMENT) : '';
+				}}
+			>fetch_insert_comment</button>
 			</div>
 			<ul class="comment_zone">{#each item.comments_and_replies as comments_and_reply, INDEX}
 				<li>
@@ -1288,7 +1295,12 @@ let res = error_check_insert_tag(TAG);
 					<button on:click={() => user_and_fetch_hello(comments_and_reply[INDEX]['username'])}>{comments_and_reply[INDEX]['username']}</button>
 					<button on:click={fetch_delete_comment(comments_and_reply[INDEX]['id'])}>fetch_delete_comment</button>
 				</li>
-					<input bind:value={COMMENT_REPLY} type="text" placeholder="comment_reply">
+					<input bind:value={COMMENT_REPLY} type="text" placeholder="comment_reply"
+							on:input={()=>{
+								ERROR_OF_COMMENT_REPLY = error_check_insert_comment_reply(COMMENT_REPLY) !== 'OK' ? error_check_insert_comment_reply(COMMENT_REPLY) : '';
+							}}
+						>
+					{ERROR_OF_COMMENT_REPLY}
 					<button on:click={fetch_insert_comment_reply(comments_and_reply[INDEX]['id'])}>fetch_insert_comment_reply</button>
 				<li class="reply_zone">
 					<ul>{#each comments_and_reply['comment_replies'] as comment_reply, INDEX}
