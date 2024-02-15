@@ -3,51 +3,8 @@ let ERROR_OF_COMMENT_REPLY = '';
 let ERROR_OF_COMMENT = '';
 let ERROR_OF_NAME = '';
 let ERROR_OF_PASSWORD = '';
-
-function validate_name(name) {
-	const validate_name_switch = (Name) => {
-		switch (true) {
-			case Name === '':
-			case Name === undefined:
-			case Name === null:
-				throw new Error('ユーザー名が未入力です');
-			case Name.length > 36:
-				throw new Error('ユーザー名は36文字以下で入力してください');
-			case Name.length < 4:
-				throw new Error('ユーザー名は4文字以上で入力してください');
-			case Name.includes(' '):
-			case Name.includes('　'):
-				throw new Error('ユーザー名に空白文字が含まれています');
-			default:
-				return "OK";
-		}
-	}
-	try {return validate_name_switch(name);	}
-	catch (error) {return error.message;}
-}
-function validate_password(password) {
-	const validate_password_switch = (Password) => {
-		switch (true) {
-			case Password === '':
-			case Password === undefined:
-			case Password === null:
-				throw new Error('パスワードが未入力です');
-			case Password.length > 36:
-				throw new Error('パスワードは36文字以下で入力してください');
-			case Password.length < 4:
-				throw new Error('パスワードは4文字以上で入力してください');
-			case Password.includes(' '):
-			case Password.includes('　'):
-				throw new Error('パスワードに空白文字が含まれています');
-			default:
-				return "OK";
-		}
-	}
-	try {return validate_password_switch(password);
-	} catch (error) {return error.message;}
-}
-
 let ERROR_OF_TAG = '';
+
 
 let HELLO_FETCH_DATA = [];
 let DATA_ID_FROM_ONLINE = null;
@@ -318,6 +275,49 @@ const all_calendar_fn = () => {
 };
 const {calendar_val,all_event,toggle_calendar,init_calendar,show_event,add_event,delete_event,} = all_calendar_fn();
 const all_validation_fn = () => {
+	function error_check_name(name) {
+		const validate_name_switch = (Name) => {
+			switch (true) {
+				case Name === '':
+				case Name === undefined:
+				case Name === null:
+					throw new Error('ユーザー名が未入力です');
+				case Name.length > 36:
+					throw new Error('ユーザー名は36文字以下で入力してください');
+				case Name.length < 4:
+					throw new Error('ユーザー名は4文字以上で入力してください');
+				case Name.includes(' '):
+				case Name.includes('　'):
+					throw new Error('ユーザー名に空白文字が含まれています');
+				default:
+					return "OK";
+			}
+		}
+		try {return validate_name_switch(name);	}
+		catch (error) {return error.message;}
+	}
+	function error_check_password(password) {
+		const validate_password_switch = (Password) => {
+			switch (true) {
+				case Password === '':
+				case Password === undefined:
+				case Password === null:
+					throw new Error('パスワードが未入力です');
+				case Password.length > 36:
+					throw new Error('パスワードは36文字以下で入力してください');
+				case Password.length < 4:
+					throw new Error('パスワードは4文字以上で入力してください');
+				case Password.includes(' '):
+				case Password.includes('　'):
+					throw new Error('パスワードに空白文字が含まれています');
+				default:
+					return "OK";
+			}
+		}
+		try {return validate_password_switch(password);
+		} catch (error) {return error.message;}
+	}
+
 	const error_check_insert_tag = (tag) => {
 		const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
 		// 空白を含むかチェックする1行の関数。大文字の空白もチェックする。含まれていたらtrueを返す
@@ -422,6 +422,8 @@ const all_validation_fn = () => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	return {
+		error_check_name,
+		error_check_password,
 		error_check_insert_tag,
 		error_check_insert_comment,
 		error_check_insert_comment_reply,
@@ -429,7 +431,7 @@ const all_validation_fn = () => {
 		error_check_insert_data,
 	};
 };
-const {error_check_insert_tag,error_check_insert_comment,error_check_insert_comment_reply,error_check_insert_link,error_check_insert_data,} = all_validation_fn();
+const {error_check_name,error_check_password, error_check_insert_tag,error_check_insert_comment,error_check_insert_comment_reply,error_check_insert_link,error_check_insert_data,} = all_validation_fn();
 const all_web_prop_fn = () => {
 	// $: if(fetch_message) {fetch_hello({});console.log("fetch_message");}
 let RESPONSE = null;
@@ -1181,14 +1183,14 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
 	name: <input bind:value={NAME} type="text" placeholder="name" autocomplete="username"
 	on:input={()=>{
-		ERROR_OF_NAME = validate_name(NAME) ? validate_name(NAME) : '';
-		ERROR_OF_NAME = ERROR_OF_NAME === 'OK' ? "" : validate_name(NAME);
+		ERROR_OF_NAME = error_check_name(NAME) ? error_check_name(NAME) : '';
+		ERROR_OF_NAME = ERROR_OF_NAME === 'OK' ? "" : error_check_name(NAME);
 	}}>
 	{ERROR_OF_NAME}
 	password: <input bind:value={PASSWORD} type="password" placeholder="password" autocomplete="current-password"
 	on:input={()=>{
-		ERROR_OF_PASSWORD = validate_password(PASSWORD) ? validate_password(PASSWORD) : '';
-		ERROR_OF_PASSWORD = ERROR_OF_PASSWORD === 'OK' ? "" : validate_password(PASSWORD);
+		ERROR_OF_PASSWORD = error_check_password(PASSWORD) ? error_check_password(PASSWORD) : '';
+		ERROR_OF_PASSWORD = ERROR_OF_PASSWORD === 'OK' ? "" : error_check_password(PASSWORD);
 	}}>
 	{ERROR_OF_PASSWORD}
 	</form>
