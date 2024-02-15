@@ -1,4 +1,56 @@
 <script>
+let ERROR_OF_NAME = '';
+let ERROR_OF_PASSWORD = '';
+
+function validate_name(name) {
+	const validate_name_switch = (Name) => {
+		switch (true) {
+			case name === '':
+			case name === undefined:
+			case name === null:
+				throw new Error('ユーザー名が未入力です');
+			case name.length > 36:
+				throw new Error('ユーザー名は36文字以下で入力してください');
+			case name.length < 4:
+				throw new Error('ユーザー名は4文字以上で入力してください');
+			case name.includes(' '):
+			case name.includes('　'):
+				throw new Error('ユーザー名に空白文字が含まれています');
+			default:
+				return "OK";
+		}
+	}
+	try {
+		return validate_name_switch(name);
+	} catch (error) {
+		return error.message;
+	}
+}
+function validate_password(password) {
+	const validate_password_switch = (password) => {
+		switch (true) {
+			case password === '':
+			case password === undefined:
+			case password === null:
+				throw new Error('パスワードが未入力です');
+			case password.length > 36:
+				throw new Error('パスワードは36文字以下で入力してください');
+			case password.length < 4:
+				throw new Error('パスワードは4文字以上で入力してください');
+			case password.includes(' '):
+			case password.includes('　'):
+				throw new Error('パスワードに空白文字が含まれています');
+			default:
+				return "OK";
+		}
+	}
+	try {
+		return validate_password_switch(password);
+	} catch (error) {
+		return error.message;
+	}
+}
+
 let ERROR_OF_TAG = '';
 
 let HELLO_FETCH_DATA = [];
@@ -1131,9 +1183,18 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 <div class="right_side">
 	<form>
 	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
-	name: <input bind:value={NAME} type="text" placeholder="name" autocomplete="username">
-
-	password: <input bind:value={PASSWORD} type="password" placeholder="password" autocomplete="current-password">
+	name: <input bind:value={NAME} type="text" placeholder="name" autocomplete="username"
+	on:input={()=>{
+		ERROR_OF_NAME = validate_name(NAME) ? validate_name(NAME) : '';
+		ERROR_OF_NAME = ERROR_OF_NAME === 'OK' ? "" : validate_name(NAME);
+	}}>
+	{ERROR_OF_NAME}
+	password: <input bind:value={PASSWORD} type="password" placeholder="password" autocomplete="current-password"
+	on:input={()=>{
+		ERROR_OF_PASSWORD = validate_password(PASSWORD) ? validate_password(PASSWORD) : '';
+		ERROR_OF_PASSWORD = ERROR_OF_PASSWORD === 'OK' ? "" : validate_password(PASSWORD);
+	}}>
+	{ERROR_OF_PASSWORD}
 	</form>
 	<div>
 
