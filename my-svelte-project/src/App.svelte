@@ -1,11 +1,11 @@
 <script>
+// 24Hでアプリ作るためのテンプレートと設計をする
+
 let ERROR_OF_COMMENT_REPLY = '';
 let ERROR_OF_COMMENT = '';
 let ERROR_OF_NAME = '';
 let ERROR_OF_PASSWORD = '';
 let ERROR_OF_TAG = '';
-
-
 let HELLO_FETCH_DATA = [];
 let DATA_ID_FROM_ONLINE = null;
 // let DEV_MODE = true;
@@ -22,36 +22,6 @@ const toggle_left_or_right_side = () => {
 	else if (IS_SHOW_LEFT && !IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [false, true];}
 	else if (!IS_SHOW_LEFT && IS_SHOW_RIGHT){[IS_SHOW_LEFT, IS_SHOW_RIGHT] = [true, true];}
 };
-const init = (item, User_Name) => {
-	try {
-	init_calendar();
-	JSON.parse(item.data_json_str).data1.forEach((V) => {
-		if(V.check === true){add_event(V.text, V.check_date)}
-		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
-	});
-	ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
-	ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
-	} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
-};
-const all_event_check = () => {
-	// eventが既にある場合は全て削除
-	init_calendar();
-	console.log("all_event_check");
-	// hello_fetch_dataからusernameがNAMEと一致するものを取り出す
-	const my_fetch_list = HELLO_FETCH_DATA.filter((each_list) => each_list['username'] === NAME);
-	// 全てのmy_fetch_listを一つのlistにまとめる
-	const all_my_fetch_list = my_fetch_list.reduce((acc, cur) => acc.concat(cur), []);
-	// all_my_fetch_listからdata1を取り出す
-	const my_list_data1 = all_my_fetch_list.map((web_data) => JSON.parse(web_data.data_json_str)['data1']);
-	// my_list_data1を一つのlistにまとめる
-	let all_my_list_data1 = my_list_data1.reduce((acc, cur) => acc.concat(cur), []);
-	// all_my_list_data1のcheck_dateをISO8601からDateに変換
-	const time_fix_all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date) }));
-	// time_fix_all_my_list_data1の全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
-	time_fix_all_my_list_data1.forEach((item, idx) => {
-		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
-	});
-};
 const in_chrome_dev_tool = () => {
 	// const obj = await app.$$.ctx;
 	// const keys = Object.keys(obj);  // ["a", "b", "c"] // キーの配列を取得
@@ -59,221 +29,6 @@ const in_chrome_dev_tool = () => {
 	// const entries = Object.entries(obj);  // [["a", 1], ["b", 2], ["c", 3]] // キーと値のペアの配列を取得
 	// await entries.filter(V=>typeof V[1] === 'function').filter(V=>V[1].name === 'test_db_init_only_set_name_password_test_mode')[0][1]();
 };
-
-
-
-
-
-
-
-
-
-const all_list_fn = () => {
-	let ALL_DATA_LIST_INDEX = 0;
-	let ALL_DATA_LIST = [];
-	const ALL_DATA_LIST_SAMPLE = [
-		{
-			"data_id_from_online": null,
-			"meta_data": {
-				"desc": "Best albums of all time of hard rock and heavy metal, 10"
-			},
-			"list": [
-				{
-					"id": 0,
-					"text": "High Voltage: AC/DC",
-					"link": "https://google.com",
-					"check": true,
-					"check_date": "2024-01-28T07:19:52.122Z"
-				},
-				{
-					"id": 1,
-					"text": "Led Zeppelin IV: Led Zeppelin",
-					"link": "https://google.com",
-					"check": true,
-					"check_date": "2024-01-28T07:19:52.947Z"
-				},
-			]
-		},
-	];
-	ALL_DATA_LIST = ALL_DATA_LIST_SAMPLE;
-	const make_new_list = () =>{
-		ALL_DATA_LIST[0] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [new_list_obj({Text:"text", Link:"https://google.com", INDEX: 0})]};
-		DATA_ID_FROM_ONLINE = null;
-	};
-	const ALL_DATA_LIST_validation_fn = (ALL_DATA_LIST) => {
-	try {
-		// "data_id_from_online": 整数かnull
-		// "meta_data": {desc: 1文字以上100文字以下の文字列}
-		// "list": 配列{ id: 整数で連番。最初の要素は0, text: 1文字以上100文字以下の文字列, link: URL文字列, check: Boolean, check_date: ISO8601形式のDate文字列}
-		// "list"が空の場合はエラー
-		const check_data_id_from_online = (Data_id_from_online) => {
-			typeof Data_id_from_online === 'number' || Data_id_from_online === null ? null : (()=>{throw new Error('data_id_from_onlineが整数かnullでない場合はエラー')})();
-		};
-		const check_meta_data = (Meta_Data) => {
-			typeof Meta_Data.desc === 'string' && Meta_Data.desc.length > 0 && Meta_Data.desc.length < 101 ? null : (()=>{throw new Error('meta_dataが1文字以上100文字以下の文字列でない場合はエラー')})();
-		};
-		const check_list = (List) => {
-			// Listが配列であることを確認
-			Array.isArray(List) ? null : (()=>{throw new Error('Listが配列でない場合はエラー')})();
-			List.length > 0 ? null : (()=>{throw new Error('listが空の場合はエラー')})();
-			// item.idが連番であることを確認
-			List.forEach((item, idx) => {
-				// idが整数で連番。最初の要素は0
-				item.id === idx ? null : (()=>{throw new Error('idが整数で連番。最初の要素は0でない場合はエラー')})();
-				// textが1文字以上100文字以下の文字列
-				item.text.length > 0 && item.text.length < 101 ? null : (()=>{throw new Error('textが1文字以上100文字以下の文字列でない場合はエラー')})();
-				// linkがURL文字列
-				isURL(item.link) ? null : (()=>{throw new Error('linkがURL文字列でない場合はエラー')})();
-				// checkがBoolean
-				typeof item.check === 'boolean' ? null : (()=>{throw new Error('checkがBooleanでない場合はエラー')})();
-				// check_dateがISO8601形式のDate文字列
-				// isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
-			});
-		};
-		// 全てのcheck関数を実行
-		ALL_DATA_LIST.forEach(All_Data=>{
-			check_data_id_from_online(All_Data.data_id_from_online);
-			check_meta_data(All_Data.meta_data);
-			check_list(All_Data.list);
-		});
-	} catch (error) {
-		console.log(error);
-		ERROR_MESSAGE = error.message;
-	}
-	};
-	const check_fn = (idx) => {
-		if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === true){
-			delete_event((new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
-			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = false;
-			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
-			return;
-		};
-		if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === false){
-			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
-			add_event(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['text'], (new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
-			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = true;
-		};
-		if(DATA_ID_FROM_ONLINE !== null){
-			console.log("data_id_from_online", DATA_ID_FROM_ONLINE);
-			insert_or_update_link(DATA_ID_FROM_ONLINE);
-		}
-	};
-	const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX=0}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
-	// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
-	const add_list = ({Add_Or_Edit="add",Target_Data_Type="text", Edit_New_Text="new_text", ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-	try {
-	if(Add_Or_Edit === "edit"){
-		const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-		old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
-		ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]);
-		ALL_DATA_LIST = old_ALL_DATA_LIST;
-	}
-	if(Add_Or_Edit === "add"){
-		const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-		old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = [
-			...old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'],
-			new_list_obj({Text: NEW_TEXT, Link: NEW_LINK, INDEX: old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].length})
-		];
-		ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-		ALL_DATA_LIST = old_ALL_DATA_LIST;
-	};
-	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
-	};
-	const insert_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-	try {
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
-		new_list_obj("foo_bar", List_Idx),
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx)
-	];
-	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
-	};
-	const delete_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
-	try {
-	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
-	// ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
-	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
-		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx + 1)
-	];
-	console.log("delete_list success!!");
-	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
-	};
-	return {
-		ALL_DATA_LIST_SAMPLE,
-		ALL_DATA_LIST,
-		ALL_DATA_LIST_INDEX,
-		make_new_list,
-		ALL_DATA_LIST_validation_fn,
-		check_fn,
-		add_list,
-		insert_list,
-		delete_list,
-	};
-
-};
-const {ALL_DATA_LIST_SAMPLE,ALL_DATA_LIST,ALL_DATA_LIST_INDEX,make_new_list,ALL_DATA_LIST_validation_fn,check_fn,add_list,insert_list,delete_list,} = all_list_fn();
-const all_calendar_fn = () => {
-    let calendar_val = null;
-    let all_event = null;
-	const toggle_calendar = () => IS_CALENDAR_VISIBLE = !IS_CALENDAR_VISIBLE;
-    const init_calendar = () =>{
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            displayEventTime: false, // イベントの時刻を非表示にする
-        });
-        calendar.render();
-        calendar_val = calendar;
-    }
-    // イベント表示
-    function show_event(){
-            // イベントを一括で取り出す
-        var events = calendar_val.getEvents();
-        events.forEach(function(event) {
-            // console.log('Title: ' + event.title + ', Start: ' + event.start);
-            console.log({"event": event, "event.title": event.title, "event.start": event.start});
-        });
-        all_event = events;
-    }
-    function add_event(Title="+", Date){
-        calendar_val.addEvent({
-            title: Title,
-            allDay: false,
-            start: Date,
-        });
-        show_event();
-    }
-    function delete_event(date){
-        var events = calendar_val.getEvents();
-        events.forEach(function(event) {
-            if(event.start.getFullYear() === date.getFullYear() &&
-            event.start.getMonth() === date.getMonth() &&
-            event.start.getDate() === date.getDate() 
-                //    秒まで一致しているか
-            &&
-            event.start.getHours() === date.getHours() &&
-            event.start.getMinutes() === date.getMinutes() &&
-            event.start.getSeconds() === date.getSeconds()
-            ){
-                event.remove();
-            }
-        });
-    }
-	return {
-		IS_CALENDAR_VISIBLE,
-		calendar_val,
-		all_event,
-		toggle_calendar,
-        init_calendar,
-        show_event,
-        add_event,
-        delete_event,
-    }
-};
-const {calendar_val,all_event,toggle_calendar,init_calendar,show_event,add_event,delete_event,} = all_calendar_fn();
 const all_validation_fn = () => {
 	function error_check_name(name) {
 		const validate_name_switch = (Name) => {
@@ -480,10 +235,6 @@ return {
 };
 };
 let {RESPONSE, NAME, PASSWORD, TEST_MODE, COMMENT, COMMENT_REPLY, TAG, TAG_VAL, ORDER_BY, ORDER_BY_COLUMN, REQ_TAG, USER, ERROR_MESSAGE, SUCCESS_MESSAGE, ERROR_MESSAGE_STACK, SUCCESS_MESSAGE_STACK, FETCH_TEST_DATA, ALL_TAGS, DOMAIN_NAME} = all_web_prop_fn();
-
-
-
-
 const all_fetch_fn = ()  => {
 	const get_POST_object = (BODY_OBJ) => {
 		console.log(BODY_OBJ);
@@ -742,8 +493,6 @@ const test_db_init = async (Start_Or_End) =>{
     ERROR_MESSAGE = error.message;
     }
 }
-
-
 const test_message_stacker = (Data, Expect_result) =>{
 	function add_SUCESS_MESSAGE(New_Data) {
 		SUCCESS_MESSAGE_STACK = [...SUCCESS_MESSAGE_STACK, New_Data]
@@ -1047,15 +796,10 @@ test_sample_exe5,
 
 };
 const {test_message_stacker,test_db_init_only_set_name_password_test_mode,test_db_init,test_for_LINK,test_for_TAG,test_for_COMMENT,test_for_COMMENT_REPLY,test_for_LIKE_INCREMENT_OR_DECREMENT,test_sample_exe,test_sample_exe2,test_sample_exe3,test_sample_exe4,test_sample_exe5,} = all_test_fn();
-
-
-
 import { onMount } from 'svelte';
 import { afterUpdate } from 'svelte';
 import { isURL } from 'validator';
 // $: if(fetch_message) {fetch_hello({});console.log("fetch_message");} listが更新されたらhtmlを更新する
-
-
 $: {
 console.log(ALL_DATA_LIST, "listが更新されたらhtmlを更新する");
 };
@@ -1076,10 +820,256 @@ afterUpdate(async () => {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+const init = (item, User_Name) => {
+	try {
+	init_calendar();
+	JSON.parse(item.data_json_str).data1.forEach((V) => {
+		if(V.check === true){add_event(V.text, V.check_date)}
+		NAME === User_Name ? null : (V.check = false, V.check_date = (new Date()).toISOString());
+	});
+	ALL_DATA_LIST[0]['list'] = JSON.parse(item.data_json_str).data1;
+	ALL_DATA_LIST[0]['meta_data'] = JSON.parse(item.data_json_str).data2;
+	} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
+};
+const all_event_check = () => {
+	// eventが既にある場合は全て削除
+	init_calendar();
+	console.log("all_event_check");
+	// hello_fetch_dataからusernameがNAMEと一致するものを取り出す
+	const my_fetch_list = HELLO_FETCH_DATA.filter((each_list) => each_list['username'] === NAME);
+	// 全てのmy_fetch_listを一つのlistにまとめる
+	const all_my_fetch_list = my_fetch_list.reduce((acc, cur) => acc.concat(cur), []);
+	// all_my_fetch_listからdata1を取り出す
+	const my_list_data1 = all_my_fetch_list.map((web_data) => JSON.parse(web_data.data_json_str)['data1']);
+	// my_list_data1を一つのlistにまとめる
+	let all_my_list_data1 = my_list_data1.reduce((acc, cur) => acc.concat(cur), []);
+	// all_my_list_data1のcheck_dateをISO8601からDateに変換
+	const time_fix_all_my_list_data1 = all_my_list_data1.map((item) => ({...item, check_date: new Date(item.check_date) }));
+	// time_fix_all_my_list_data1の全てのidxをforeachして、checkがtrueならadd_event()を実行、falseならdelete_event()を実行
+	time_fix_all_my_list_data1.forEach((item, idx) => {
+		item['check'] === true ? add_event(item['text'], item['check_date']) : delete_event(item['check_date']);
+	});
+};
+const all_list_fn = () => {
+	let ALL_DATA_LIST_INDEX = 0;
+	let ALL_DATA_LIST = [];
+	const ALL_DATA_LIST_SAMPLE = [
+		{
+			"data_id_from_online": null,
+			"meta_data": {
+				"desc": "Best albums of all time of hard rock and heavy metal, 10"
+			},
+			"list": [
+				{
+					"id": 0,
+					"text": "High Voltage: AC/DC",
+					"link": "https://google.com",
+					"check": true,
+					"check_date": "2024-01-28T07:19:52.122Z"
+				},
+				{
+					"id": 1,
+					"text": "Led Zeppelin IV: Led Zeppelin",
+					"link": "https://google.com",
+					"check": true,
+					"check_date": "2024-01-28T07:19:52.947Z"
+				},
+			]
+		},
+	];
+	ALL_DATA_LIST = ALL_DATA_LIST_SAMPLE;
+	const make_new_list = () =>{
+		ALL_DATA_LIST[0] = {data_id_from_online: null, meta_data: {desc: "new_desc"}, list: [new_list_obj({Text:"text", Link:"https://google.com", INDEX: 0})]};
+		DATA_ID_FROM_ONLINE = null;
+	};
+	const ALL_DATA_LIST_validation_fn = (ALL_DATA_LIST) => {
+	try {
+		// "data_id_from_online": 整数かnull
+		// "meta_data": {desc: 1文字以上100文字以下の文字列}
+		// "list": 配列{ id: 整数で連番。最初の要素は0, text: 1文字以上100文字以下の文字列, link: URL文字列, check: Boolean, check_date: ISO8601形式のDate文字列}
+		// "list"が空の場合はエラー
+		const check_data_id_from_online = (Data_id_from_online) => {
+			typeof Data_id_from_online === 'number' || Data_id_from_online === null ? null : (()=>{throw new Error('data_id_from_onlineが整数かnullでない場合はエラー')})();
+		};
+		const check_meta_data = (Meta_Data) => {
+			typeof Meta_Data.desc === 'string' && Meta_Data.desc.length > 0 && Meta_Data.desc.length < 101 ? null : (()=>{throw new Error('meta_dataが1文字以上100文字以下の文字列でない場合はエラー')})();
+		};
+		const check_list = (List) => {
+			// Listが配列であることを確認
+			Array.isArray(List) ? null : (()=>{throw new Error('Listが配列でない場合はエラー')})();
+			List.length > 0 ? null : (()=>{throw new Error('listが空の場合はエラー')})();
+			// item.idが連番であることを確認
+			List.forEach((item, idx) => {
+				// idが整数で連番。最初の要素は0
+				item.id === idx ? null : (()=>{throw new Error('idが整数で連番。最初の要素は0でない場合はエラー')})();
+				// textが1文字以上100文字以下の文字列
+				item.text.length > 0 && item.text.length < 101 ? null : (()=>{throw new Error('textが1文字以上100文字以下の文字列でない場合はエラー')})();
+				// linkがURL文字列
+				isURL(item.link) ? null : (()=>{throw new Error('linkがURL文字列でない場合はエラー')})();
+				// checkがBoolean
+				typeof item.check === 'boolean' ? null : (()=>{throw new Error('checkがBooleanでない場合はエラー')})();
+				// check_dateがISO8601形式のDate文字列
+				// isISO8601(item.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDate文字列でない場合はエラー')})();
+			});
+		};
+		// 全てのcheck関数を実行
+		ALL_DATA_LIST.forEach(All_Data=>{
+			check_data_id_from_online(All_Data.data_id_from_online);
+			check_meta_data(All_Data.meta_data);
+			check_list(All_Data.list);
+		});
+	} catch (error) {
+		console.log(error);
+		ERROR_MESSAGE = error.message;
+	}
+	};
+	const check_fn = (idx) => {
+		if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === true){
+			delete_event((new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = false;
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
+			return;
+		};
+		if(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] === false){
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'] = (new Date()).toISOString();
+			add_event(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['text'], (new Date(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check_date'])));
+			ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'][idx]['check'] = true;
+		};
+		if(DATA_ID_FROM_ONLINE !== null){
+			console.log("data_id_from_online", DATA_ID_FROM_ONLINE);
+			insert_or_update_link(DATA_ID_FROM_ONLINE);
+		}
+	};
+	const new_list_obj = ({Text="foo_bar",Link="https://google.com", INDEX=0}) => ({ id: INDEX, text: Text, link: Link, check: false, check_date: (new Date()).toISOString() });
+	// Svelteでは、配列を更新するときには、配列自体への参照を変更する必要があります。これは、Svelteが配列の変更を検出するために配列への参照の変更を監視しているからです。
+	const add_list = ({Add_Or_Edit="add",Target_Data_Type="text", Edit_New_Text="new_text", ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
+	try {
+	if(Add_Or_Edit === "edit"){
+		const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+		old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'][List_Idx][Target_Data_Type] = Edit_New_Text;
+		ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]);
+		ALL_DATA_LIST = old_ALL_DATA_LIST;
+	}
+	if(Add_Or_Edit === "add"){
+		const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+		old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'] = [
+			...old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'],
+			new_list_obj({Text: NEW_TEXT, Link: NEW_LINK, INDEX: old_ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list'].length})
+		];
+		ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+		ALL_DATA_LIST = old_ALL_DATA_LIST;
+	};
+	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
+	};
+	const insert_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
+	try {
+	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+	ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
+		new_list_obj("foo_bar", List_Idx),
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx)
+	];
+	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
+	};
+	const delete_list = ({ALL_DATA_LIST_Idx=0, List_Idx=0}) => {
+	try {
+	const old_ALL_DATA_LIST = JSON.parse(JSON.stringify(ALL_DATA_LIST));
+	// ALL_DATA_LIST_validation_fn(old_ALL_DATA_LIST);
+	ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'] = [
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(0, List_Idx),
+		...old_ALL_DATA_LIST[ALL_DATA_LIST_Idx]['list'].slice(List_Idx + 1)
+	];
+	console.log("delete_list success!!");
+	} catch (error) {console.log(error); ERROR_MESSAGE = error.message}
+	};
+	return {
+		ALL_DATA_LIST_SAMPLE,
+		ALL_DATA_LIST,
+		ALL_DATA_LIST_INDEX,
+		make_new_list,
+		ALL_DATA_LIST_validation_fn,
+		check_fn,
+		add_list,
+		insert_list,
+		delete_list,
+	};
+
+};
+const {ALL_DATA_LIST_SAMPLE,ALL_DATA_LIST,ALL_DATA_LIST_INDEX,make_new_list,ALL_DATA_LIST_validation_fn,check_fn,add_list,insert_list,delete_list,} = all_list_fn();
+const all_calendar_fn = () => {
+    let calendar_val = null;
+    let all_event = null;
+	const toggle_calendar = () => IS_CALENDAR_VISIBLE = !IS_CALENDAR_VISIBLE;
+    const init_calendar = () =>{
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            displayEventTime: false, // イベントの時刻を非表示にする
+        });
+        calendar.render();
+        calendar_val = calendar;
+    }
+    // イベント表示
+    function show_event(){
+            // イベントを一括で取り出す
+        var events = calendar_val.getEvents();
+        events.forEach(function(event) {
+            // console.log('Title: ' + event.title + ', Start: ' + event.start);
+            console.log({"event": event, "event.title": event.title, "event.start": event.start});
+        });
+        all_event = events;
+    }
+    function add_event(Title="+", Date){
+        calendar_val.addEvent({
+            title: Title,
+            allDay: false,
+            start: Date,
+        });
+        show_event();
+    }
+    function delete_event(date){
+        var events = calendar_val.getEvents();
+        events.forEach(function(event) {
+            if(event.start.getFullYear() === date.getFullYear() &&
+            event.start.getMonth() === date.getMonth() &&
+            event.start.getDate() === date.getDate() 
+                //    秒まで一致しているか
+            &&
+            event.start.getHours() === date.getHours() &&
+            event.start.getMinutes() === date.getMinutes() &&
+            event.start.getSeconds() === date.getSeconds()
+            ){
+                event.remove();
+            }
+        });
+    }
+	return {
+		IS_CALENDAR_VISIBLE,
+		calendar_val,
+		all_event,
+		toggle_calendar,
+        init_calendar,
+        show_event,
+        add_event,
+        delete_event,
+    }
+};
+const {calendar_val,all_event,toggle_calendar,init_calendar,show_event,add_event,delete_event,} = all_calendar_fn();
 </script>
 
 
-<main>
+<header>
 RESPONSE: {JSON.stringify(RESPONSE)}
 SUCCESS_MESSAGE_STACK: {JSON.stringify(SUCCESS_MESSAGE_STACK)}
 ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
@@ -1096,32 +1086,26 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 <button on:click={() => test_db_init("end")}>test_db_init_end</button>
 <button on:click={() => test_sample_exe({})}>test_sample_exe</button>
 <button on:click={() => toggle_left_or_right_side({})}>toggle_left_or_right_side</button>
+</header>
 
-
-
-<div class="core">
+<main>
+<aside class="left_side">
 	<div class={IS_SHOW_LEFT ? '' : 'hidden'}>
-	<div class="left_side">
-		ALL_DATA_LIST_INDEX: {ALL_DATA_LIST_INDEX}
-		<button on:click={toggle_calendar}>toggle_calendar</button>
-		DATA_ID_FROM_ONLINE: {DATA_ID_FROM_ONLINE}
-		<button on:click={() => add_event()}>add_event</button>
-		<button on:click={() => show_event()}>show_event</button>
-		<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
-		<span>{all_event}</span>
-		<span>{calendar_val}</span>
+	ALL_DATA_LIST_INDEX: {ALL_DATA_LIST_INDEX}
+	<button on:click={toggle_calendar}>toggle_calendar</button>
+	DATA_ID_FROM_ONLINE: {DATA_ID_FROM_ONLINE}
+	<button on:click={() => add_event()}>add_event</button>
+	<button on:click={() => show_event()}>show_event</button>
+	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
+	<span>{all_event}</span>
+	<span>{calendar_val}</span>
 
-		{#if DEV_MODE === false}
-		<div class={IS_CALENDAR_VISIBLE ? '' : 'hidden'}>
-			<div id='calendar'></div>
-		</div>
-		{/if}
-
-
-
-
-
-{#each ALL_DATA_LIST as outer_list, outer_idx}
+	{#if DEV_MODE === false}
+	<div class={IS_CALENDAR_VISIBLE ? '' : 'hidden'}>
+		<div id='calendar'></div>
+	</div>
+	{/if}
+	{#each ALL_DATA_LIST as outer_list, outer_idx}
 		<div class="list">
 		EDIT_MODE: 
 		<input type="radio" class="EDIT_MODE" value="on" on:change={() => EDIT_MODE = true} checked={EDIT_MODE} />
@@ -1167,18 +1151,12 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 		<!-- <input type="url" value={NEW_LINK} on:input={(e) => NEW_LINK = e.target.value} /> -->
 		<button on:click={() => add_list({Add_Or_Edit: "add"})}>add_list</button>
 		</div>
-{/each}
-
-
-
-
+	{/each}
 	</div>
-	</div>
+</aside>
 
-	{#if DEV_MODE === false}
-<!-- <div class={is_only_one_side_open === 'left' ? '' : 'hidden'}> -->
-<div class={IS_SHOW_RIGHT ? '' : 'hidden'}>
-<div class="right_side">
+<aside class="right_side">
+	<div class={IS_SHOW_RIGHT ? '' : 'hidden'}>
 	<form>
 	<!-- debag用(HTMLと変数をバインドしないとchromeのconsoleでapp.$$.ctxで表示されないため) -->
 	name: <input bind:value={NAME} type="text" placeholder="name" autocomplete="username"
@@ -1205,7 +1183,6 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 		<button on:click={() => order_by_and_fetch_hello()}>ORDER_BY: {ORDER_BY}</button>
 		<button on:click={() => order_by_column_and_fetch_hello()}>ORDER_BY_COLUMN: {ORDER_BY_COLUMN}</button>		
 	</div>
-	<!-- {ALL_TAGS} -->
 	{#each ALL_TAGS as item, index}
 	<button on:click={() => req_tag_and_fetch_hello(item.tag)}>{item.tag}</button>
 	{/each}
@@ -1313,23 +1290,65 @@ let res = error_check_insert_tag(TAG);
 	{/each}
 	</ul>
 	</div>
-	</div>
-	{/if}
-</div>
+</aside>
 </main>
 
-
-
-<aside>
+<footer>
 	<a href="https://taroyanaka.github.io/svelte2/">this site is https://taroyanaka.github.io/svelte2/</a>
-</aside>
-
-
+</footer>
 
 
 
 
 <style>
+/* headerタグを配置 */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #333;
+  color: #fff;
+  /* padding: 1rem; */
+  text-align: left;
+  z-index: 1000;
+  /* headerのheghtを指定 */
+  /* height: 20rem; */
+
+
+}
+/* footerタグを配置 */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #333;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+  z-index: 1000;
+}
+main {
+	display: flex;
+	/* mainをheaderの下に配置 */
+	margin-top: 15rem;
+}
+.left_side {
+	flex: 1 0 50%;
+}
+.right_side {
+	flex: 1 0 50%;
+}
+.hidden {
+    display: none;
+}
+
+
+
+
+
+
 #calendar{
 	width: 100%;
 	/* height: 20rem; */
@@ -1343,17 +1362,6 @@ let res = error_check_insert_tag(TAG);
 .checkbox{
 	width: 2rem;
 	height: 2rem;
-}
-.core{
-	position: relative;
-	display: flex;
-
-}
-.left_side, .right_side {
-  flex: 1;
-}
-.hidden {
-    display: none;
 }
 input:invalid {
   border: red solid 3px;
