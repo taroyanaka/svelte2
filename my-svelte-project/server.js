@@ -1096,48 +1096,43 @@ app.post('/delete_comment_reply', (req, res) => {
 // ユーザーがログインしていないときに401 Unauthorizedを返す
 // ユーザーが書き込み権限を持っていないときに400 Bad Requestを返す
 app.post('/insert_link', (req, res) => {
-    try {
-
-
-
-// req.body.data_json_str はJSONストリング。JSONオブジェクトには変換せずに保管する
-// req.body.data_json_str　はクライアント側でJSON.stringify()されている
-// req.body.data_json_str　はクライアント側でJSONストリングとJSONオブジェクトの相互変換をしている
-
+try {
+    // req.body.data_json_str はJSONストリング。JSONオブジェクトには変換せずに保管する
+    // req.body.data_json_str　はクライアント側でJSON.stringify()されている
+    // req.body.data_json_str　はクライアント側でJSONストリングとJSONオブジェクトの相互変換をしている
     const error_check_data = all_validation_checking_client_server_both['validation_insert_data'](req.body.data_json_str);
     console.log(error_check_data);
     error_check_data === 'OK' ? null : (()=>{throw new Error(error_check_data)})();
-
     // StrをisURLでチェックしてtrueならそのまま返す関数
-const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
-// listのvalidationの関数
-// 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
-// {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
-            const list_validation = (Ary) => {
-                try {
-                // Aryが配列でない場合はエラー
-                Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
-                Ary.forEach((V, I) => {
-                    // idが整数でない場合はエラー
-                    typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
-                    // textが1文字以上でない場合はエラー
-                    V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
-                    // linkがURLでない場合はエラー
-                    typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
-                    // linkがURLでない場合はエラー
-                    url_check(V.link);
-                    // checkがBooleanでない場合はエラー
-                    typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
-                    // check_dateがISO8601形式のDateでない場合はエラー
-                    isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
-                });
-                // Aryが空の場合はエラー
-                Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
-                } catch (error) {
-                console.log(error);
-                // ERROR_MESSAGE = error.message;
-                }
-            };
+    const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
+    // listのvalidationの関数
+    // 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
+    // {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
+    const list_validation = (Ary) => {
+        try {
+        // Aryが配列でない場合はエラー
+        Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
+        Ary.forEach((V, I) => {
+            // idが整数でない場合はエラー
+            typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
+            // textが1文字以上でない場合はエラー
+            V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
+            // linkがURLでない場合はエラー
+            typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
+            // linkがURLでない場合はエラー
+            url_check(V.link);
+            // checkがBooleanでない場合はエラー
+            typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
+            // check_dateがISO8601形式のDateでない場合はエラー
+            isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
+        });
+        // Aryが空の場合はエラー
+        Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
+        } catch (error) {
+        console.log(error);
+        // ERROR_MESSAGE = error.message;
+        }
+    };
     const Data_Json_Str = JSON.parse(req.body.data_json_str);
     // req.body.data_json_strをJSONオブジェクトに変換した後は以下のようになる
     // {"data1":[{"id":0,"text":"High Voltage: AC/DC","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.122Z"},{"id":1,"text":"Led Zeppelin IV: Led Zeppelin","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.947Z"},{"id":2,"text":"Appetite for Destruction: Guns N' Roses","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:54.374Z"},{"id":3,"text":"Master of Puppets: Metallica","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":4,"text":"Back in Black: AC/DC","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":5,"text":"Paranoid: Black Sabbath","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":6,"text":"The Dark Side of the Moon: Pink Floyd","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":7,"text":"Destroyer: KISS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":8,"text":"Rumours: Fleetwood Mac","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":9,"text":"Machine Head: Deep Purple","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}
@@ -1168,44 +1163,43 @@ const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形�
         }
     };
     const data2_error_check_result = data2_error_check(Data_Json_Str.data2);
+    const user = get_user_with_permission(req);
+    user || user.writable ? null : (()=>{throw new Error('権限がありません')})();
+    // 同じlinkが存在するなら、エラーを返す
+    // const link_exists = db.prepare(`SELECT * FROM links WHERE link = ?`).get(req.body.link);
+    // link_exists ? (()=>{throw new Error('同じlinkが存在します')})() : null;
 
+    const response = db.prepare(`
+        INSERT INTO links (user_id, link, data_json_str, created_at, updated_at) VALUES (
+            @user_id, @link, @data_json_str, @created_at, @updated_at
+    )`).run({
+            user_id: user.user_id,
+            // req.body.link = '';
+            link: '',
+            data_json_str: encodeURIComponent(req.body.data_json_str),
+            created_at: now(),
+            updated_at: now()
+        });
+        console.log(response);
+    response ? null : (()=>{throw new Error('原因不明のinsertエラー')})();
 
-        const user = get_user_with_permission(req);
-        user || user.writable ? null : (()=>{throw new Error('権限がありません')})();
-        // 同じlinkが存在するなら、エラーを返す
-        // const link_exists = db.prepare(`SELECT * FROM links WHERE link = ?`).get(req.body.link);
-        // link_exists ? (()=>{throw new Error('同じlinkが存在します')})() : null;
+    collect_value_for_test('__/insert_link__user.user_id', user.user_id);
+    collect_value_for_test('__/insert_link__req.body.link', req.body.link);
+    // collect_value_for_test('__/insert_link__response', response);
+    // show_collect_value_for_test();
 
-        const response = db.prepare(`
-            INSERT INTO links (user_id, link, data_json_str, created_at, updated_at) VALUES (
-                @user_id, @link, @data_json_str, @created_at, @updated_at
-        )`).run({
-                user_id: user.user_id,
-                // req.body.link = '';
-                link: '',
-                data_json_str: encodeURIComponent(req.body.data_json_str),
-                created_at: now(),
-                updated_at: now()
-            });
-            console.log(response);
-        response ? null : (()=>{throw new Error('原因不明のinsertエラー')})();
+    res.status(200)
+        .json({result: 'success'
+            ,status: 200
+            ,message: response.lastInsertRowid
+        });
+} catch (error) {
+    console.log(error);
+    console.log(error.message);
+    res.status(400).json({status: 400, result: 'fail', message: error.message});
 
-        collect_value_for_test('__/insert_link__user.user_id', user.user_id);
-        collect_value_for_test('__/insert_link__req.body.link', req.body.link);
-        // collect_value_for_test('__/insert_link__response', response);
-        // show_collect_value_for_test();
-
-        res.status(200)
-            .json({result: 'success'
-                ,status: 200
-                ,message: response.lastInsertRowid
-            });
-    } catch (error) {
-        console.log(error);
-        console.log(error.message);
-        res.status(400).json({status: 400, result: 'fail', message: error.message});
-
-    }
+}
+    
 });
 
 
