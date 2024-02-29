@@ -31,6 +31,7 @@ const all_list_fn = () => {
 	const remove_list = (Id_To_Remove) => LIST = LIST.filter(item => item.id !== Id_To_Remove);
 	const edit_list = (Id_To_Edit, event) => LIST = LIST.map(item => item.id === Id_To_Edit ? {...item, text: event.target.value, update_date: (new Date()).toISOString()} : item);
 	let toggle_details = (Item_Id) => SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
+	let toggle_EDITING_DESCRIPTION = () => IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION;
 	const edit_description = (event) => DESCRIPTION = event.target.value;
 	return {
 		check_date_update,
@@ -44,6 +45,7 @@ const all_list_fn = () => {
 		remove_list,
 		edit_list,
 		toggle_details,
+		toggle_EDITING_DESCRIPTION,
 		edit_description,
 	};
 };
@@ -61,11 +63,16 @@ const {
 } = all_list_fn();
 let {
 	check_date_update,
+	toggle_EDITING_DESCRIPTION,
 	toggle_details,
 } = all_list_fn();
 const overwrite_fn_for_web = () => {
 	check_date_update = async (Id_To_Check) => {
 		LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item);
+		await fetch_insert_or_update_link(ID);
+	}
+	toggle_EDITING_DESCRIPTION = async () => {
+		IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION;
 		await fetch_insert_or_update_link(ID);
 	}
 	toggle_details = async (Item_Id) => {
