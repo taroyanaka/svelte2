@@ -399,7 +399,7 @@ const all_fetch_fn = ()  => {
 		// listのcheckを全部falseにし、change_dateを現在時刻にする
 		const DATA_JSON_STR = pre_upload_for_make_json_str();
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
-		// RESPONSEのstatusが200の場合はmessageの値をIDに代入
+		// RESPONSEのstatusが200の場合はmessageの値をIDに代入(lastInsertRowidとlinksテーブルのidは基本的には別だが、INTEGER PRIMARY KEYとして定義された列は、特別な扱いを受け、その列の値はROWIDと同じになります。)
 		RESPONSE.status === 200 ? ID = RESPONSE.message : null;
 		console.log(RESPONSE);
 		await response_handling(RESPONSE);
