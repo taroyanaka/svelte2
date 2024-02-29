@@ -13,74 +13,57 @@ let SELECTED_ITEM_ID = null;
 const all_list_fn = () => {
 	let A_OR_D = "asc";
 	// checkboxのON/OFFでcheck_dateを更新する関数(check_on_offのtrue/falseを切り替え、check_dateを更新する)
-	let check_date_update = (Id_To_Check) => LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item);
 	const change_sort = () => A_OR_D = A_OR_D === "asc" ? "desc" : "asc";
+	const id_init = () => ID = 0;
+	const description_init = () => DESCRIPTION = "";
+	const list_init = () => LIST = [{ id: 0, text: "", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) }];
+	const make_new_id = () => LIST.length > 0 ? LIST[LIST.length - 1].id + 1 : 1;
+	const overwrite_fn_for_web = () => IN_APP ? fetch_insert_or_update_link(ID) : null;
+
 	const sort_by_id = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.id - b.id : b.id - a.id));
 	const sort_by_text = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.text.localeCompare(b.text) : b.text.localeCompare(a.text)));
 	const sort_by_add_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.add_date.localeCompare(b.add_date) : b.add_date.localeCompare(a.add_date)));
 	const sort_by_update_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.update_date.localeCompare(b.update_date) : b.update_date.localeCompare(a.update_date)));
 	const sort_by_check_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.check_date.localeCompare(b.check_date) : b.check_date.localeCompare(a.check_date)));
-
-	const id_init = () => ID = 0;
-	const description_init = () => DESCRIPTION = "";
-	const list_init = () => LIST = [{ id: 0, text: "", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) }];
-	const make_new_blank_list = () => (id_init(), description_init(), list_init());
-	
-	const make_new_id = () => LIST.length > 0 ? LIST[LIST.length - 1].id + 1 : 1;
-	const add_list = (Text="abc", Add_Date=((new Date()).toISOString()), Update_Date=((new Date()).toISOString()), Check_Date=((new Date()).toISOString()),) => LIST = [...LIST, { id: make_new_id(), text: Text, add_date: Add_Date, update_date: Update_Date, check_on_off: false, check_date: Check_Date }];
-	const remove_list = (Id_To_Remove) => LIST = LIST.filter(item => item.id !== Id_To_Remove);
-	const edit_list = (Id_To_Edit, event) => LIST = LIST.map(item => item.id === Id_To_Edit ? {...item, text: event.target.value, update_date: (new Date()).toISOString()} : item);
-	let toggle_details = (Item_Id) => SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
-	let toggle_EDITING_DESCRIPTION = () => IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION;
 	const edit_description = (event) => DESCRIPTION = event.target.value;
+	const edit_list = (Id_To_Edit, event) => LIST = LIST.map(item => item.id === Id_To_Edit ? {...item, text: event.target.value, update_date: (new Date()).toISOString()} : item);
+	const add_list = (Text="abc", Add_Date=((new Date()).toISOString()), Update_Date=((new Date()).toISOString()), Check_Date=((new Date()).toISOString()),) => (LIST = [...LIST, { id: make_new_id(), text: Text, add_date: Add_Date, update_date: Update_Date, check_on_off: false, check_date: Check_Date }],  overwrite_fn_for_web());
+	const remove_list = (Id_To_Remove) => ((LIST = LIST.filter(item => item.id !== Id_To_Remove),  overwrite_fn_for_web()));
+	const toggle_details = (Item_Id) => (SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id,  overwrite_fn_for_web());
+	const toggle_EDITING_DESCRIPTION = () => (IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION,  overwrite_fn_for_web());
+	const make_new_blank_list = () => (id_init(), description_init(), list_init(),  overwrite_fn_for_web());
+	const check_date_update = (Id_To_Check) => (LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item),  overwrite_fn_for_web());
 	return {
-		check_date_update,
-		sort_by_id,
-		sort_by_text,
-		sort_by_add_date,
-		sort_by_update_date,
-		sort_by_check_date,
-		make_new_blank_list,
-		add_list,
-		remove_list,
-		edit_list,
-		toggle_details,
-		toggle_EDITING_DESCRIPTION,
-		edit_description,
+sort_by_id,
+sort_by_text,
+sort_by_add_date,
+sort_by_update_date,
+sort_by_check_date,
+edit_description,
+edit_list,
+add_list,
+remove_list,
+toggle_details,
+toggle_EDITING_DESCRIPTION,
+make_new_blank_list,
+check_date_update,
 	};
 };
 const {
-		sort_by_id,
-		sort_by_text,
-		sort_by_add_date,
-		sort_by_update_date,
-		sort_by_check_date,
-		make_new_blank_list,
-		add_list,
-		remove_list,
-		edit_list,
-		edit_description,
+sort_by_id,
+sort_by_text,
+sort_by_add_date,
+sort_by_update_date,
+sort_by_check_date,
+edit_description,
+edit_list,
+add_list,
+remove_list,
+toggle_details,
+toggle_EDITING_DESCRIPTION,
+make_new_blank_list,
+check_date_update,
 } = all_list_fn();
-let {
-	check_date_update,
-	toggle_EDITING_DESCRIPTION,
-	toggle_details,
-} = all_list_fn();
-const overwrite_fn_for_web = () => {
-	check_date_update = async (Id_To_Check) => {
-		LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item);
-		await fetch_insert_or_update_link(ID);
-	}
-	toggle_EDITING_DESCRIPTION = async () => {
-		IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION;
-		await fetch_insert_or_update_link(ID);
-	}
-	toggle_details = async (Item_Id) => {
-		SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
-		await fetch_insert_or_update_link(ID);
-	}
-};
-IN_APP ? overwrite_fn_for_web() : null;
 
 
 const pre_upload_for_make_json_str = () => {
