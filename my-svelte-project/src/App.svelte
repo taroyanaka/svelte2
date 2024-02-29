@@ -1,8 +1,10 @@
 <script>
+const IN_APP = true;
+// const IN_APP = false;
 // server.jsとOne.svelteのvalidationをやる
+let ID = 0;
 let DESCRIPTION = 'description text';
 let LIST = [
-	// { id: 1, text: "abc", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()) },
 	{ id: 1, text: "abc", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) },
 	{ id: 2, text: "def", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) },
 ];
@@ -11,7 +13,7 @@ let SELECTED_ITEM_ID = null;
 const all_list_fn = () => {
 	let A_OR_D = "asc";
 	// checkboxのON/OFFでcheck_dateを更新する関数(check_on_offのtrue/falseを切り替え、check_dateを更新する)
-	const check_date_update = (Id_To_Check) => LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item);
+	let check_date_update = (Id_To_Check) => LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item);
 	const change_sort = () => A_OR_D = A_OR_D === "asc" ? "desc" : "asc";
 	const sort_by_id = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.id - b.id : b.id - a.id));
 	const sort_by_text = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.text.localeCompare(b.text) : b.text.localeCompare(a.text)));
@@ -19,12 +21,16 @@ const all_list_fn = () => {
 	const sort_by_update_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.update_date.localeCompare(b.update_date) : b.update_date.localeCompare(a.update_date)));
 	const sort_by_check_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.check_date.localeCompare(b.check_date) : b.check_date.localeCompare(a.check_date)));
 
+	const id_init = () => ID = 0;
+	const description_init = () => DESCRIPTION = "";
+	const list_init = () => LIST = [{ id: 0, text: "", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) }];
+	const make_new_blank_list = () => (id_init(), description_init(), list_init());
 	
 	const make_new_id = () => LIST.length > 0 ? LIST[LIST.length - 1].id + 1 : 1;
 	const add_list = (Text="abc", Add_Date=((new Date()).toISOString()), Update_Date=((new Date()).toISOString()), Check_Date=((new Date()).toISOString()),) => LIST = [...LIST, { id: make_new_id(), text: Text, add_date: Add_Date, update_date: Update_Date, check_on_off: false, check_date: Check_Date }];
 	const remove_list = (Id_To_Remove) => LIST = LIST.filter(item => item.id !== Id_To_Remove);
 	const edit_list = (Id_To_Edit, event) => LIST = LIST.map(item => item.id === Id_To_Edit ? {...item, text: event.target.value, update_date: (new Date()).toISOString()} : item);
-	const toggle_details = (Item_Id) => SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
+	let toggle_details = (Item_Id) => SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
 	const edit_description = (event) => DESCRIPTION = event.target.value;
 	return {
 		check_date_update,
@@ -33,6 +39,7 @@ const all_list_fn = () => {
 		sort_by_add_date,
 		sort_by_update_date,
 		sort_by_check_date,
+		make_new_blank_list,
 		add_list,
 		remove_list,
 		edit_list,
@@ -41,29 +48,45 @@ const all_list_fn = () => {
 	};
 };
 const {
-		check_date_update,
 		sort_by_id,
 		sort_by_text,
 		sort_by_add_date,
 		sort_by_update_date,
 		sort_by_check_date,
+		make_new_blank_list,
 		add_list,
 		remove_list,
 		edit_list,
-		toggle_details,
 		edit_description,
 } = all_list_fn();
+let {
+	check_date_update,
+	toggle_details,
+} = all_list_fn();
+const overwrite_fn_for_web = () => {
+	check_date_update = async (Id_To_Check) => {
+		LIST = LIST.map(item => item.id === Id_To_Check ? {...item, check_on_off: !item.check_on_off, check_date: (new Date()).toISOString()} : item);
+		await fetch_insert_or_update_link(ID);
+	}
+	toggle_details = async (Item_Id) => {
+		SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
+		await fetch_insert_or_update_link(ID);
+	}
+};
+IN_APP ? overwrite_fn_for_web() : null;
+
 
 const pre_upload_for_make_json_str = () => {
-	const DATA = {list: LIST, desc: DESCRIPTION};
+	const DATA = {desc: DESCRIPTION, list: LIST,};
 	const DATA_JSON_STR = JSON.stringify({
 		DATA
 	});
 	return DATA_JSON_STR;
 };
-const pre_download_for_parse_json_str = (Data_Json_Str) => {
+const pre_download_for_parse_json_str = (Id, Data_Json_Str) => {
 	const parsed_Data_Json_Str = JSON.parse(Data_Json_Str);
 	const DATA = parsed_Data_Json_Str['DATA'];
+	ID = Id;
 	DESCRIPTION = DATA['desc'];
 	LIST = DATA['list'];
 };
@@ -319,9 +342,8 @@ const all_fetch_fn = ()  => {
 		try {
 			const DATA_JSON_STR = pre_upload_for_make_json_str();
 			// Link_idとuser_idが一致するものがある場合はupdateする
-			if(Link_id !== undefined  && Link_id !== null){
+			if(Link_id !== undefined  && Link_id !== null && Link_id !== 0){
 				console.log('update');
-				console.log(ALL_DATA_LIST[ALL_DATA_LIST_INDEX]['list']);
 				RESPONSE = await (await fetch(DOMAIN_NAME+'update_link', get_POST_object({ name: NAME, password: PASSWORD, link_id: Link_id, data_json_str: DATA_JSON_STR }))).json();
 				await response_handling(RESPONSE);
 				return;
@@ -377,8 +399,12 @@ const all_fetch_fn = ()  => {
 		// listのcheckを全部falseにし、change_dateを現在時刻にする
 		const DATA_JSON_STR = pre_upload_for_make_json_str();
 		RESPONSE = await (await fetch(DOMAIN_NAME+'insert_link', get_POST_object({ name: NAME, password: PASSWORD, data_json_str: DATA_JSON_STR }))).json();
+		// RESPONSEのstatusが200の場合はmessageの値をIDに代入
+		RESPONSE.status === 200 ? ID = RESPONSE.message : null;
 		console.log(RESPONSE);
 		await response_handling(RESPONSE);
+		await fetch_hello({});
+
 		} catch (error) {ERROR_MESSAGE = error.message;}
 	};
 	// copy insert(他のユーザーのlinkをコピーして自分のlinkとして保存する)
@@ -876,7 +902,7 @@ afterUpdate(async () => {
 const init = (item, User_Name) => {
 	try {
 	// console.log("item", item,"User_Name", User_Name);
-	pre_download_for_parse_json_str(item['data_json_str']);
+	pre_download_for_parse_json_str(item.id, item['data_json_str']);
 	// console.log("LIST", LIST,"DESCRIPTION", DESCRIPTION,);
 	} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
 };
@@ -964,18 +990,20 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 <aside class="left_side">
 	<div class={IS_SHOW_LEFT ? '' : 'hidden'}>
 		<div class="one_pack">
+			<div><button on:click={make_new_blank_list}>Make New Blank List</button></div>
 			{JSON.stringify(LIST)}
 			<button on:click={sort_by_id}>Sort by ID</button>
 			<button on:click={sort_by_text}>Sort by Text</button>
 			<button on:click={sort_by_add_date}>Sort by Add Date</button>
 			<button on:click={sort_by_update_date}>Sort by Update Date</button>
 			<button on:click={sort_by_check_date}>Sort by Check Date</button>
+			{#if ID !== 0}<div class="id"><span>ID: {ID}</span></div>{/if}
 			<div class="description">
 			<span>DESCRIPTION: {DESCRIPTION}</span>
 			{#if IS_EDITING_DESCRIPTION === true}
 				<input type="text" bind:value={DESCRIPTION} on:input={(e) => edit_description(e)} class="without_click" />
 			{/if}
-			<button on:click={()=> IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION} class="detail_button">▶️</button>
+			<button on:click={()=> toggle_EDITING_DESCRIPTION()} class="detail_button">▶️</button>
 			</div>
 			<br class="space">
 			
@@ -990,7 +1018,7 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 		check_date: {new Date(item.check_date).getFullYear()}/{new Date(item.check_date).getMonth() + 1}/{new Date(item.check_date).getDate()} {new Date(item.check_date).getHours()}:{new Date(item.check_date).getMinutes()} {new Date(item.check_date).getSeconds()}<br>
 		
 		
-					<button on:click={()=>toggle_details(item.id)} class="detail_button">▶️</button>
+					<button on:click={()=> toggle_details(item.id)} class="detail_button">▶️</button>
 					<!-- check_date_update button check_on_offがtrueならchecked -->
 					<input type="checkbox" on:change={() => check_date_update(item.id)} bind:checked={item.check_on_off} />
 				</div>
@@ -998,7 +1026,7 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 					<input type="text" bind:value={item['text']} on:input={(e) => edit_list(item.id, e)} class="without_click" />
 					<div>Add Date: {item['add_date']}</div>
 					<div>Update Date: {item['update_date']}</div>
-					<button on:click={() => remove_list(item.id)}>Remove</button>
+					<button on:click={()=> remove_list(item.id)}>Remove</button>
 					<button on:click={()=> toggle_details(item.id)} class="detail_button">▶️</button>
 				</div>
 			</div>
@@ -1008,7 +1036,10 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 		</div>
 		
 		
-					<button on:click={() => fetch_insert_link({})}>fetch_insert_link</button>
+		
+
+					<button on:click={() => fetch_insert_or_update_link(ID)}>fetch_insert_or_update_link</button>
+					<!-- <button on:click={() => fetch_insert_link({})}>fetch_insert_link</button> -->
 					<button on:click={() => fetch_hello({})}>CLEAR</button>
 
 	</div>
@@ -1198,4 +1229,34 @@ main {
 
 
 
+
+	.detail_button{
+		display: inline;
+		font-size: 0.8rem;
+	}
+	.id{
+		font-size: 2rem;
+	max-height: 100%;
+	max-width: 100%;
+	background-color: lightgray;
+	}
+	.description{
+		font-size: 2rem;
+	max-height: 100%;
+	max-width: 100%;
+	background-color: peachpuff;		
+	}
+	.each_item {
+	font-size: 2rem;
+	max-height: 100%;
+	max-width: 100%;
+	background-color: gray;
+	}
+	.space{
+	height: 0.5rem;
+	}
+	input[type="checkbox"] {
+		width: 2rem;
+		height: 2rem;
+	}
 </style>
