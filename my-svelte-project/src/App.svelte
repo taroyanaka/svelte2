@@ -1,18 +1,42 @@
 <script>
+// server.jsとOne.svelteのvalidationをやる
+
+let DESCRIPTION = 'description text';
+let IS_EDITING_DESCRIPTION = false;
+let LIST = [
+	{ id: 1, text: "abc", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()) },
+	{ id: 2, text: "def", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()) },
+];
+let SELECTED_ITEM_ID = null;
+let A_OR_D = "asc";
+const change_sort = () => A_OR_D = A_OR_D === "asc" ? "desc" : "asc";
+const sort_by_id = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.id - b.id : b.id - a.id));
+const sort_by_text = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? a.text.localeCompare(b.text) : b.text.localeCompare(a.text)));
+const sort_by_add_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? new Date(a.add_date) - new Date(b.add_date) : new Date(b.add_date) - new Date(a.add_date)));
+const sort_by_update_date = () => (change_sort(), LIST = LIST.sort((a, b) => A_OR_D === "asc" ? new Date(a.update_date) - new Date(b.update_date) : new Date(b.update_date) - new Date(a.update_date)));
+const make_new_id = () => LIST.length > 0 ? LIST[LIST.length - 1].id + 1 : 1;
+const add_list = (Text="abc", Add_Date=((new Date()).toISOString()), Update_Date=((new Date()).toISOString())) => LIST = [...LIST, { id: make_new_id(), text: Text, add_date: Add_Date, update_date: Update_Date, },];
+const remove_list = (Id_To_Remove) => LIST = LIST.filter(item => item.id !== Id_To_Remove);
+const edit_list = (Id_To_Edit, event) => LIST = LIST.map(item => item.id === Id_To_Edit ? {...item, text: event.target.value, update_date: (new Date()).toISOString()} : item);
+const toggle_details = (Item_Id) => SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id;
+const edit_description = (event) => DESCRIPTION = event.target.value;
+
+
 const pre_upload_for_make_json_str = () => {
-	const DATA = {list: LIST, desc: DESC};
+	const DATA = {list: LIST, desc: DESCRIPTION};
 	const DATA_JSON_STR = JSON.stringify({
 		DATA
 	});
 	return DATA_JSON_STR;
 };
 const pre_download_for_parse_json_str = (Data_Json_Str) => {
-	const DATA = JSON.parse(Data_Json_Str);
-	DESC = DATA['desc'];
+	const parsed_Data_Json_Str = JSON.parse(Data_Json_Str);
+	const DATA = parsed_Data_Json_Str['DATA'];
+	DESCRIPTION = DATA['desc'];
 	LIST = DATA['list'];
 };
-let DESC = '';
-let LIST = [];
+// let DESCRIPTION = '';
+// let LIST = [];
 let ERROR_OF_COMMENT_REPLY = '';
 let ERROR_OF_COMMENT = '';
 let ERROR_OF_NAME = '';
@@ -819,8 +843,9 @@ afterUpdate(async () => {
 
 const init = (item, User_Name) => {
 	try {
-	init_calendar();
-
+	// console.log("item", item,"User_Name", User_Name);
+	pre_download_for_parse_json_str(item['data_json_str']);
+	// console.log("LIST", LIST,"DESCRIPTION", DESCRIPTION,);
 	} catch (error) {console.log(error);ERROR_MESSAGE = error.message;}
 };
 // const all_calendar_fn = () => {
@@ -906,6 +931,41 @@ ERROR_MESSAGE_STACK: {JSON.stringify(ERROR_MESSAGE_STACK)}
 <main>
 <aside class="left_side">
 	<div class={IS_SHOW_LEFT ? '' : 'hidden'}>
+					<div class="one_pack">
+						<button on:click={sort_by_id}>Sort by ID</button>
+						<button on:click={sort_by_text}>Sort by Text</button>
+						<button on:click={sort_by_add_date}>Sort by Add Date</button>
+						<button on:click={sort_by_update_date}>Sort by Update Date</button>
+						<div class="description">
+						<span>DESCRIPTION: {DESCRIPTION}</span>
+						{#if IS_EDITING_DESCRIPTION === true}
+							<input type="text" bind:value={DESCRIPTION} on:input={(e) => edit_description(e)} class="without_click" />
+						{/if}
+						<button on:click={()=> IS_EDITING_DESCRIPTION = !IS_EDITING_DESCRIPTION} class="detail_button">▶️</button>
+						</div>
+						<br class="space">
+						
+						{#each LIST as item, index}
+						<div class="each_item">
+							<div>
+								ID: {item.id}
+								TEXT: {item.text}
+								<button on:click={()=>toggle_details(item.id)} class="detail_button">▶️</button>
+							</div>
+							<div style="display: {SELECTED_ITEM_ID === item.id ? 'block' : 'none'};">
+								<input type="text" bind:value={item['text']} on:input={(e) => edit_list(item.id, e)} class="without_click" />
+								<div>Add Date: {item['add_date']}</div>
+								<div>Update Date: {item['update_date']}</div>
+								<button on:click={() => remove_list(item.id)}>Remove</button>
+								<button on:click={()=> toggle_details(item.id)} class="detail_button">▶️</button>
+							</div>
+						</div>
+						<br class="space">
+						{/each}
+						<button on:click={() => add_list()}>add_list</button>
+					</div>
+					<button on:click={() => fetch_insert_link({})}>fetch_insert_link</button>
+					<button on:click={() => fetch_hello({})}>CLEAR</button>
 
 	</div>
 </aside>

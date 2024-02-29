@@ -1100,69 +1100,69 @@ try {
     // req.body.data_json_str はJSONストリング。JSONオブジェクトには変換せずに保管する
     // req.body.data_json_str　はクライアント側でJSON.stringify()されている
     // req.body.data_json_str　はクライアント側でJSONストリングとJSONオブジェクトの相互変換をしている
-    const error_check_data = all_validation_checking_client_server_both['validation_insert_data'](req.body.data_json_str);
-    console.log(error_check_data);
-    error_check_data === 'OK' ? null : (()=>{throw new Error(error_check_data)})();
-    // StrをisURLでチェックしてtrueならそのまま返す関数
-    const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
-    // listのvalidationの関数
-    // 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
-    // {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
-    const list_validation = (Ary) => {
-        try {
-        // Aryが配列でない場合はエラー
-        Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
-        Ary.forEach((V, I) => {
-            // idが整数でない場合はエラー
-            typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
-            // textが1文字以上でない場合はエラー
-            V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
-            // linkがURLでない場合はエラー
-            typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
-            // linkがURLでない場合はエラー
-            url_check(V.link);
-            // checkがBooleanでない場合はエラー
-            typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
-            // check_dateがISO8601形式のDateでない場合はエラー
-            isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
-        });
-        // Aryが空の場合はエラー
-        Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
-        } catch (error) {
-        console.log(error);
-        // ERROR_MESSAGE = error.message;
-        }
-    };
-    const Data_Json_Str = JSON.parse(req.body.data_json_str);
-    // req.body.data_json_strをJSONオブジェクトに変換した後は以下のようになる
-    // {"data1":[{"id":0,"text":"High Voltage: AC/DC","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.122Z"},{"id":1,"text":"Led Zeppelin IV: Led Zeppelin","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.947Z"},{"id":2,"text":"Appetite for Destruction: Guns N' Roses","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:54.374Z"},{"id":3,"text":"Master of Puppets: Metallica","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":4,"text":"Back in Black: AC/DC","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":5,"text":"Paranoid: Black Sabbath","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":6,"text":"The Dark Side of the Moon: Pink Floyd","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":7,"text":"Destroyer: KISS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":8,"text":"Rumours: Fleetwood Mac","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":9,"text":"Machine Head: Deep Purple","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}
-    // data1をlist_validationする。data2は以下のようにチェックする
-    const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
-    // data2がundefinedの場合はエラー
-    // case reserved_words.includes(data2): return 'SQLの予約語を含む場合はエラー'; break;
-    // case data2 === undefined: return 'data2が空です'; break;
-    // case data2.desc === undefined: return 'data2.descが空です'; break;
-    const data1_error_check = (Data1) => {
-        console.log(Data1);
-        console.log(reserved_words);
-        switch(true) {
-            // ['apple', 'banana', 'mango', 'grape'].some(fruit => fruit.includes('an'))
-            case reserved_words.some(word => JSON.stringify(Data1).includes(word)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
-            // case reserved_words.includes(JSON.stringify(Data1)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
-            case Data1 === undefined: (()=>{throw new Error('data1が空です')})(); break;
-        }
-    };
-    data1_error_check(Data_Json_Str.data1);
-    const data1_error_check_result = list_validation(Data_Json_Str.data1);
-    const data2_error_check = (Data2) => {
-        switch(true) {
-            // case reserved_words.includes(Data2): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
-            case reserved_words.some(word => JSON.stringify(Data2).includes(word)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
-            case Data2 === undefined: (()=>{throw new Error('data2が空です')})(); break;
-            case Data2.desc === undefined: (()=>{throw new Error('data2.descが空です')})(); break;
-        }
-    };
-    const data2_error_check_result = data2_error_check(Data_Json_Str.data2);
+//    const error_check_data = all_validation_checking_client_server_both['validation_insert_data'](req.body.data_json_str);
+//    console.log(error_check_data);
+//    error_check_data === 'OK' ? null : (()=>{throw new Error(error_check_data)})();
+//    // StrをisURLでチェックしてtrueならそのまま返す関数
+//    const url_check = (Str) => isURL(Str) ? Str : (()=>{throw new Error('URLの形式が正しくありません')})();
+//    // listのvalidationの関数
+//    // 正しいデータ構造は 例: {id: 0, text: 'Dark & Wild: BTS', link: 'https://google.com', check: false, check_date: Wed Jan 17 2024 13:40:41 GMT+0900 (日本標準時)}
+//    // {id: 整数Num, text: 1文字以上文字列, link: URL文字列(url_check関数でチェック), check: Boolean, check_date: Date}
+//    const list_validation = (Ary) => {
+//        try {
+//        // Aryが配列でない場合はエラー
+//        Array.isArray(Ary) ? null : (()=>{throw new Error('Aryが配列でない場合はエラー')})();
+//        Ary.forEach((V, I) => {
+//            // idが整数でない場合はエラー
+//            typeof V.id !== 'number' ? (()=>{throw new Error('idが整数でない場合はエラー')})() : null;
+//            // textが1文字以上でない場合はエラー
+//            V.text.length < 1 ? (()=>{throw new Error('textが1文字以上でない場合はエラー')})() : null;
+//            // linkがURLでない場合はエラー
+//            typeof V.link !== 'string' ? (()=>{throw new Error('linkが文字列でない場合はエラー')})() : null;
+//            // linkがURLでない場合はエラー
+//            url_check(V.link);
+//            // checkがBooleanでない場合はエラー
+//            typeof V.check !== 'boolean' ? (()=>{throw new Error('checkがBooleanでない場合はエラー')})() : null;
+//            // check_dateがISO8601形式のDateでない場合はエラー
+//            isISO8601(V.check_date) ? null : (()=>{throw new Error('check_dateがISO8601形式のDateでない場合はエラー')})();
+//        });
+//        // Aryが空の場合はエラー
+//        Ary.length === 0 ? (()=>{throw new Error('Aryが空の場合はエラー')})() : null;
+//        } catch (error) {
+//        console.log(error);
+//        // ERROR_MESSAGE = error.message;
+//        }
+//    };
+//    const Data_Json_Str = JSON.parse(req.body.data_json_str);
+//    // req.body.data_json_strをJSONオブジェクトに変換した後は以下のようになる
+//    // {"data1":[{"id":0,"text":"High Voltage: AC/DC","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.122Z"},{"id":1,"text":"Led Zeppelin IV: Led Zeppelin","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:52.947Z"},{"id":2,"text":"Appetite for Destruction: Guns N' Roses","link":"https://google.com","check":true,"check_date":"2024-01-28T07:19:54.374Z"},{"id":3,"text":"Master of Puppets: Metallica","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":4,"text":"Back in Black: AC/DC","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":5,"text":"Paranoid: Black Sabbath","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":6,"text":"The Dark Side of the Moon: Pink Floyd","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":7,"text":"Destroyer: KISS","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":8,"text":"Rumours: Fleetwood Mac","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"},{"id":9,"text":"Machine Head: Deep Purple","link":"https://google.com","check":false,"check_date":"2024-01-28T07:19:48.132Z"}],"data2":{"desc":"Best albums of all time of hard rock and heavy metal, 10"}}
+//    // data1をlist_validationする。data2は以下のようにチェックする
+//    const reserved_words = ['SELECT', 'FROM', 'WHERE', 'INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'CREATE', 'TABLE', 'INTO', 'VALUES', 'AND', 'OR', 'NOT', 'NULL', 'TRUE', 'FALSE'];
+//    // data2がundefinedの場合はエラー
+//    // case reserved_words.includes(data2): return 'SQLの予約語を含む場合はエラー'; break;
+//    // case data2 === undefined: return 'data2が空です'; break;
+//    // case data2.desc === undefined: return 'data2.descが空です'; break;
+//    const data1_error_check = (Data1) => {
+//        console.log(Data1);
+//        console.log(reserved_words);
+//        switch(true) {
+//            // ['apple', 'banana', 'mango', 'grape'].some(fruit => fruit.includes('an'))
+//            case reserved_words.some(word => JSON.stringify(Data1).includes(word)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+//            // case reserved_words.includes(JSON.stringify(Data1)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+//            case Data1 === undefined: (()=>{throw new Error('data1が空です')})(); break;
+//        }
+//    };
+//    data1_error_check(Data_Json_Str.data1);
+//    const data1_error_check_result = list_validation(Data_Json_Str.data1);
+//    const data2_error_check = (Data2) => {
+//        switch(true) {
+//            // case reserved_words.includes(Data2): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+//            case reserved_words.some(word => JSON.stringify(Data2).includes(word)): (()=>{throw new Error('SQLの予約語を含む場合はエラー')})(); break;
+//            case Data2 === undefined: (()=>{throw new Error('data2が空です')})(); break;
+//            case Data2.desc === undefined: (()=>{throw new Error('data2.descが空です')})(); break;
+//        }
+//    };
+//    const data2_error_check_result = data2_error_check(Data_Json_Str.data2);
     const user = get_user_with_permission(req);
     user || user.writable ? null : (()=>{throw new Error('権限がありません')})();
     // 同じlinkが存在するなら、エラーを返す

@@ -22,7 +22,7 @@ const edit_description = (event) => DESCRIPTION = event.target.value;
 
 
 
-
+<div class="one_pack">
 	<button on:click={sort_by_id}>Sort by ID</button>
 	<button on:click={sort_by_text}>Sort by Text</button>
 	<button on:click={sort_by_add_date}>Sort by Add Date</button>
@@ -54,11 +54,13 @@ const edit_description = (event) => DESCRIPTION = event.target.value;
 	<br class="space">
 	{/each}
 	<button on:click={() => add_list()}>add_list</button>
-	
-	
-	
-	
-		
+</div>
+
+
+
+
+
+
 <style>
 	.detail_button{
 		display: inline;
