@@ -2,7 +2,12 @@
 // const IN_APP = true;
 const IN_APP = false;
 let ERROR_MESSAGE = '';
-// server.jsとOne.svelteのvalidationをやる
+
+// all_list_chain_error_checkはonlineと通信する際に実行する
+// offlineのvalidationはinputタグのrequiredやpatternやmax/min length属性を使う
+// all_list_chain_error_checkはパッケージングしてserver.js側にもコピペして流用する
+
+
 let ID = 0;
 let DESCRIPTION = 'description text';
 let MAIN_LIST = [
