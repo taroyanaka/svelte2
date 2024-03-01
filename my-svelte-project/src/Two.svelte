@@ -1,4 +1,14 @@
 <script>
+//jp en
+//名前 name
+//詳細	description
+//住所	address
+//電話番号 phone
+//関連URLリスト related_url
+//最寄り駅	nearest_station
+//休日	holiday
+//営業時間 business_hours
+
     import { bubble } from "svelte/internal";
 
 // const IN_APP = true;
@@ -15,6 +25,17 @@ let MAIN_LIST = [
 	{ id: 6, text: "pqr", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), },
 	{ id: 7, text: "stu", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), },
 ];
+// DETAIL_LISTはMAIN_LISTと1:1の関係
+let DETAIL_LIST = [
+	{ list_id: 1, id: 1, name: 'name1', description: 'description1description2description3description4description5description6description7', address: 'address1address2address3address4', phone: 'phone1', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station1', holiday: 'holiday1', business_hours: 'business_hours1', },
+	{ list_id: 2, id: 2, name: 'name3', description: 'description3description4description5description6description7', address: 'address3address4address5address6', phone: 'phone3', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station3', holiday: 'holiday3', business_hours: 'business_hours3', },
+	{ list_id: 3, id: 3, name: 'name4', description: 'description4description5description6description7', address: 'address4address5address6address7', phone: 'phone4', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station4', holiday: 'holiday4', business_hours: 'business_hours4', },
+	{ list_id: 4, id: 4, name: 'name5', description: 'description5description6description7', address: 'address5address6address7address8', phone: 'phone5', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station5', holiday: 'holiday5', business_hours: 'business_hours5', },
+	{ list_id: 5, id: 5, name: 'name7', description: 'description7', address: 'address7address8address9address10', phone: 'phone7', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station7', holiday: 'holiday7', business_hours: 'business_hours7', },
+	{ list_id: 6, id: 6, name: 'name7', description: 'description2description3description4description5description6description7', address: 'address7address8address9address10', phone: 'phone7', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station7', holiday: 'holiday7', business_hours: 'business_hours7', },
+	{ list_id: 7, id: 7, name: 'name7', description: 'description7', address: 'address7address8address9address10', phone: 'phone7', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station7', holiday: 'holiday7', business_hours: 'business_hours7', },
+];
+
 let SUB_LIST = [
 	{ list_id: 1, id: 1, text: "ABC", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) },
 	{ list_id: 1, id: 2, text: "DEF", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) },
@@ -55,7 +76,12 @@ let IMAGE_LIST = [
 ];
 let LIST = [];
 const make_list_chain = () => {
-	LIST = MAIN_LIST.map((item, index) => {
+	const MAIN_LIST_WITH_DETAIL_LIST = MAIN_LIST.map((item, index) => {
+		let detail_list = DETAIL_LIST.find(detail_item => detail_item.list_id === item.id);
+		let MAIN_LIST_WITH_DETAIL_LIST = {...item, ...detail_list};
+		return MAIN_LIST_WITH_DETAIL_LIST;
+	});
+	LIST = MAIN_LIST_WITH_DETAIL_LIST.map((item, index) => {
 		let sub_list = SUB_LIST.filter(sub_item => sub_item.list_id === item.id);
 		let image_list = sub_list.map(sub_item => IMAGE_LIST.filter(image_item => image_item.sub_list_id === sub_item.id));
 		let sub_list_with_image = sub_list.map((sub_item, sub_index) => ({...sub_item, image: image_list[sub_index]}));
@@ -87,12 +113,22 @@ const check_sub_list = (sub_list_id) => {
 
 
 <div class="one_pack">
-	{JSON.stringify(LIST)}
+	<!-- {JSON.stringify(LIST)} -->
 	{#each LIST as item, index}
 		<div class="one_item">
-			<div class="one_item_text">
-				{item.text}
-			</div>
+			<!-- DETAIL表示 -->
+list_id: {item.list_id}
+id: {item.id}
+name: {item.name}
+description: {item.description}
+address: {item.address}
+phone: {item.phone}
+related_url_list: {item.related_url_list}
+nearest_station: {item.nearest_station}
+holiday: {item.holiday}
+business_hours: {item.business_hours}
+
+			<div class="one_item_text">{item.text}</div>
 			{#each item.sub_list as sub_item, sub_index}
 				<!-- checkboxをtrueにしたらbackground-colorをgrayにする -->
 				<span style="background-color: {sub_item.check_on_off ? 'gray' : 'white'};">
