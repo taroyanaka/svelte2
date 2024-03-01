@@ -71,9 +71,16 @@ const edit_sub_list_text = (sub_list_id, event) => {
 }
 const toggle_details = (Item_Id) => (SELECTED_ITEM_ID = SELECTED_ITEM_ID === Item_Id ? null : Item_Id);
 const check_sub_list = (sub_list_id) => {
-	let sub_list = SUB_LIST.find(sub_item => sub_item.id === sub_list_id);
-	sub_list.check_on_off = !sub_list.check_on_off;
-	sub_list.check_date = ((new Date()).toISOString());
+	LIST = LIST.map(item => {
+		let sub_list = item.sub_list.map(sub_item => {
+			if(sub_item.id === sub_list_id){
+				sub_item.check_on_off = !sub_item.check_on_off;
+				sub_item.check_date = ((new Date()).toISOString());
+			}
+			return sub_item;
+		});
+		return {...item, sub_list: sub_list};
+	});
 }
 </script>
 
@@ -91,7 +98,7 @@ const check_sub_list = (sub_list_id) => {
 				<span style="background-color: {sub_item.check_on_off ? 'gray' : 'white'};">
 				{sub_item.text}
 				{#each sub_item.image as image_item, image_index}
-					<img src={image_item.image_url} class="image_resize" />
+					<img src={image_item.image_url} class="image_resize" alt="image_url" />
 				{/each}
 				<button on:click={()=> toggle_details(sub_item.id)} class="detail_button">▶️</button>
 				{#if SELECTED_ITEM_ID === sub_item.id}
