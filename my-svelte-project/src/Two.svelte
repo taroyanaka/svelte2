@@ -1,6 +1,7 @@
 <script>
 // const IN_APP = true;
 const IN_APP = false;
+let ERROR_MESSAGE = '';
 // server.jsとOne.svelteのvalidationをやる
 let ID = 0;
 let DESCRIPTION = 'description text';
@@ -23,6 +24,7 @@ let DETAIL_LIST = [
 	{ list_id: 6, id: 6, name: 'name7', description: 'description2description3description4description5description6description7', address: 'address7address8address9address10', phone: 'phone7', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station7', holiday: 'holiday7', business_hours: 'business_hours7', },
 	{ list_id: 7, id: 7, name: 'name7', description: 'description7', address: 'address7address8address9address10', phone: 'phone7', related_url_list: ['https://www.google.com/', 'https://twitter.com/', 'https://www.apple.com/'], nearest_station: 'nearest_station7', holiday: 'holiday7', business_hours: 'business_hours7', },
 ];
+
 // SUB_LISTはDETAIL_LISTと1:Nの関係
 let SUB_LIST = [
 	{ list_id: 1, id: 1, text: "ABC", add_date: ((new Date()).toISOString()), update_date: ((new Date()).toISOString()), check_on_off: false, check_date: ((new Date()).toISOString()) },
@@ -65,18 +67,42 @@ let IMAGE_LIST = [
 let LIST = [];
 
 const make_list_chain = () => {
-	const MAIN_LIST_WITH_DETAIL_LIST = MAIN_LIST.map((item, index) => {
-		let detail_list = DETAIL_LIST.find(detail_item => detail_item.list_id === item.id);
-		let MAIN_LIST_WITH_DETAIL_LIST = {...item, ...detail_list};
-		return MAIN_LIST_WITH_DETAIL_LIST;
-	});
-	LIST = MAIN_LIST_WITH_DETAIL_LIST.map((item, index) => {
-		let sub_list = SUB_LIST.filter(sub_item => sub_item.list_id === item.id);
-		let image_list = sub_list.map(sub_item => IMAGE_LIST.filter(image_item => image_item.sub_list_id === sub_item.id));
-		let sub_list_with_image = sub_list.map((sub_item, sub_index) => ({...sub_item, image: image_list[sub_index]}));
-		let MAIN_LIST_WITH_SUB_LIST = {...item, sub_list: sub_list_with_image};
-		return MAIN_LIST_WITH_SUB_LIST;
-	});
+	// 更新された内容をall_list_chain_error_check()でエラーチェック。エラーチェックして問題なければLISTを更新する。問題があれば、エラーメッセージを表示し、更新前のLISTに戻す。
+	const execute_make_list_chain = () => {
+		const MAIN_LIST_WITH_DETAIL_LIST = MAIN_LIST.map((item, index) => {
+			let Detail_list = DETAIL_LIST.find(detail_item => detail_item.list_id === item.id);
+			let MAIN_LIST_WITH_DETAIL_LIST = {...item, detail_list: Detail_list};
+			return MAIN_LIST_WITH_DETAIL_LIST;
+		});
+		LIST = MAIN_LIST_WITH_DETAIL_LIST.map((item, index) => {
+			let sub_list = SUB_LIST.filter(sub_item => sub_item.list_id === item.id);
+			let image_list = sub_list.map(sub_item => IMAGE_LIST.filter(image_item => image_item.sub_list_id === sub_item.id));
+			let sub_list_with_image = sub_list.map((sub_item, sub_index) => ({...sub_item, image: image_list[sub_index]}));
+			let MAIN_LIST_WITH_SUB_LIST = {...item, sub_list: sub_list_with_image};
+			return MAIN_LIST_WITH_SUB_LIST;
+		});
+	};
+	try {
+	// LISTが空であればexecute_make_list_chain()を実行する。LISTが空でなければ、LISTを更新する前の状態に戻す。
+	LIST.length === 0 ? execute_make_list_chain() : null;
+	// LISTを複製する(以前の状態に戻すため)
+	// all_list_chain_error_check()でエラーチェックし、LISTに問題がなければ更新する。問題があれば、エラーメッセージを表示し、更新前のCOPYに戻す
+		
+		// all_list_chain_error_check();
+
+		
+
+		console.log('更新されました');
+		console.log(LIST);
+
+		
+	} catch (error) {
+		console.log(error);
+		console.log(error.message);
+		ERROR_MESSAGE = error.message;
+		
+	}
+
 }
 
 // listのエラーチェック関数
@@ -92,24 +118,26 @@ const all_list_chain_error_check = () => {
 	// SUB_LISTとIMAGE_LISTは1:Nの関係。親のidと子のsub_list_idが一致する。親のidが存在しない場合はエラー。子のsub_list_idが1つ以上存在しない場合はエラー。
 	const check_MAIN_LIST = () => {
 		// (typeof item.id === 'number' && item.id > 0) && (new Date(item.add_date).toISOString() === item.add_date) && (new Date(item.update_date).toISOString() === item.update_date);
-		MAIN_LIST.every(item => {
+		LIST.every(item => {
 			switch (true) {
 				case (typeof item.id !== 'number'):
-					throw new Error('idは数値でなければなりません');
+					return (()=>{throw new Error('idは数値でなければなりません')})();
 				case (item.id <= 0):
-					throw new Error('idは1以上でなければなりません');
+					return (()=>{throw new Error('idは1以上でなければなりません')})();
 				case (new Date(item.add_date).toISOString() !== item.add_date):
-					throw new Error('add_dateはiso形式の日時でなければなりません');
+					return (()=>{throw new Error('add_dateはiso形式の日時でなければなりません')})();
 				case (new Date(item.update_date).toISOString() !== item.update_date):
-					throw new Error('update_dateはiso形式の日時でなければなりません');
+					return (()=>{throw new Error('update_dateはiso形式の日時でなければなりません')})();
 				default:
-					return true; // default case should return true
 			}
 		});
 	};
+
+
 	const check_DETAIL_LIST = () => {
 		// return (typeof item.list_id === 'number' && item.list_id > 0) && (typeof item.id === 'number' && item.id > 0) && (typeof item.name === 'string' && item.name.length > 0 && item.name.length <= 100) && (typeof item.description === 'string' && item.description.length > 0 && item.description.length <= 200) && (typeof item.address === 'string' && item.address.length > 0 && item.address.length <= 500) && (typeof item.phone === 'string' && item.phone.length > 0 && item.phone.length <= 50) && (Array.isArray(item.related_url_list) && item.related_url_list.every(url_item => typeof url_item === 'string' && url_item.length > 0 && url_item.length <= 500)) && (typeof item.nearest_station === 'string' && item.nearest_station.length > 0 && item.nearest_station.length <= 200) && (typeof item.holiday === 'string' && item.holiday.length > 0 && item.holiday.length <= 1000) && (typeof item.business_hours === 'string' && item.business_hours.length > 0 && item.business_hours.length <= 500);
-		DETAIL_LIST.every(item => {
+		const detail_list = LIST.map(V=>V.detail_list);
+		detail_list.every(item => {
 			switch (true) {
 				case (typeof item.list_id !== 'number'):
 					return (()=>{throw new Error('list_idは数値でなければなりません')})();
@@ -170,8 +198,8 @@ const all_list_chain_error_check = () => {
 					return (()=>{throw new Error('idは1以上でなければなりません')})();
 				case (typeof item.text !== 'string'):
 					return (()=>{throw new Error('textは文字列でなければなりません')})();
-				case (item.text.length <= 0 || item.text.length > 500):
-					return (()=>{throw new Error('textは1文字以上500文字以内')})();
+				case (item.text.length <= 0 || item.text.length > 10):
+					return (()=>{throw new Error('textは1文字以上10文字以内')})();
 				case (new Date(item.add_date).toISOString() !== item.add_date):
 					return (()=>{throw new Error('add_dateはiso形式の日時でなければなりません')})();
 				case (new Date(item.update_date).toISOString() !== item.update_date):
@@ -245,6 +273,7 @@ try {
 } catch (error) {
 	console.log(error);
 	console.log(error.message);	
+	ERROR_MESSAGE = error.message;
 }
 
 }
@@ -257,15 +286,18 @@ make_list_chain();
 
 let listChanged = 0; // 追加した状態変数
 $: {
+	// all_list_chain_error_check();
 	// console.log(listChanged);
-    // if (listChanged) {
-    //     make_list_chain();
-    // }
+    if (listChanged) {
+        make_list_chain();
+		// all_list_chain_error_check();
+    }
 }
 
 
 let SELECTED_ITEM_ID = null;
 const edit_sub_list_text = (sub_list_id, event) => {
+	console.log("edit_sub_list_text");
 	let sub_list = SUB_LIST.find(sub_item => sub_item.id === sub_list_id);
 	sub_list.text = event.target.value;
 	listChanged++;
@@ -290,21 +322,27 @@ const check_sub_list = (sub_list_id) => {
 
 <div class="one_pack">
 	{JSON.stringify(LIST)}<br><br><br>
+
+	ERROR_MESSAGE: {ERROR_MESSAGE}
+	<button on:click={()=> all_list_chain_error_check()}>all_list_chain_error_check</button>
 	{#each LIST as item, index}
 	<div class="one_item">
 		<div>ID: {item.id}</div>
+		<!-- {JSON.stringify(item.detail_list)} -->
 
-<!-- DETAIL表示 -->
-list_id: {item.list_id}
-id: {item.id}
-name: {item.name}
-description: {item.description}
-address: {item.address}
-phone: {item.phone}
-related_url_list: {#each item.related_url_list as url_item, url_index}<div><a href={url_item}>{url_item}</a></div>{/each}
-nearest_station: {item.nearest_station}
-holiday: {item.holiday}
-business_hours: {item.business_hours}
+		list_id: {item.detail_list.list_id}
+		id: {item.detail_list.id}
+		name: {item.detail_list.name}
+		description: {item.detail_list.description}
+		address: {item.detail_list.address}
+		phone: {item.detail_list.phone}
+		related_url_list: 
+		{#each item.detail_list.related_url_list as related_url_item, related_url_index}
+			<div><a href={related_url_item} target="_blank">{related_url_item}</a></div>
+		{/each}
+		nearest_station: {item.detail_list.nearest_station}
+		holiday: {item.detail_list.holiday}
+		business_hours: {item.detail_list.business_hours}
 
 			<div class="one_item_text">
 			{#each item.sub_list as sub_item, sub_index}
