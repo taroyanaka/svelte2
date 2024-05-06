@@ -156,3 +156,122 @@ INSERT INTO users (user_permission_id, username, userpassword, created_at, updat
 INSERT INTO users (user_permission_id, username, userpassword, created_at, updated_at) VALUES (2, 'user2', 'user_pass2', DATETIME('now'), DATETIME('now'));
 INSERT INTO users (user_permission_id, username, userpassword, created_at, updated_at) VALUES (3, 'pro1', 'pro_pass1', DATETIME('now'), DATETIME('now'));
 INSERT INTO users (user_permission_id, username, userpassword, created_at, updated_at) VALUES (4, 'testuser', 'duct_mean_fuckst1ck', DATETIME('now'), DATETIME('now'));
+
+
+
+-- 以下のようなデータを作るテーブルを定義したい
+-- {
+--     "id": 1,
+--     "add_date": "2024-05-06T13:13:27.414Z",
+--     "update_date": "2024-05-06T13:13:27.414Z",
+--     "detail_list": {
+--         "list_id": 1,
+--         "id": 1,
+--         "name": "name1",
+--         "description": "description1description2description3description4description5description6description7",
+--         "address": "address1address2address3address4",
+--         "phone": "phone1",
+--         "related_url_list": [
+--             "https://www.google.com/",
+--             "https://twitter.com/",
+--             "https://www.apple.com/"
+--         ],
+--         "nearest_station": "nearest_station1",
+--         "holiday": "holiday1",
+--         "business_hours": "business_hours1"
+--     },
+--     "sub_list": [
+--         {
+--             "list_id": 1,
+--             "id": 1,
+--             "text": "ABC",
+--             "add_date": "2024-05-06T13:13:27.414Z",
+--             "update_date": "2024-05-06T13:13:27.414Z",
+--             "check_on_off": false,
+--             "check_date": "2024-05-06T13:13:27.414Z",
+--             "image": [
+--                 {
+--                     "sub_list_id": 1,
+--                     "id": 1,
+--                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+--                 },
+--                 {
+--                     "sub_list_id": 1,
+--                     "id": 11,
+--                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+--                 },
+--                 {
+--                     "sub_list_id": 1,
+--                     "id": 21,
+--                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/320px-Amazon_Web_Services_Logo.svg.png"
+--                 }
+--             ]
+--         },
+--         {
+--             "list_id": 1,
+--             "id": 2,
+--             "text": "DEF",
+--             "add_date": "2024-05-06T13:13:27.414Z",
+--             "update_date": "2024-05-06T13:13:27.414Z",
+--             "check_on_off": false,
+--             "check_date": "2024-05-06T13:13:27.414Z",
+--             "image": [
+--                 {
+--                     "sub_list_id": 2,
+--                     "id": 2,
+--                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png"
+--                 },
+--                 {
+--                     "sub_list_id": 2,
+--                     "id": 12,
+--                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png"
+--                 }
+--             ]
+--         }
+--     ]
+-- }
+
+CREATE TABLE lists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  add_date DATETIME NOT NULL,
+  update_date DATETIME NOT NULL,
+  detail_list TEXT NOT NULL,
+  sub_list TEXT NOT NULL
+);
+
+CREATE TABLE sub_lists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  list_id INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  add_date DATETIME NOT NULL,
+  update_date DATETIME NOT NULL,
+  check_on_off INTEGER NOT NULL,
+  check_date DATETIME NOT NULL,
+  image TEXT NOT NULL
+);
+
+CREATE TABLE detail_lists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  list_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  address TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  related_url_list TEXT NOT NULL,
+  nearest_station TEXT NOT NULL,
+  holiday TEXT NOT NULL,
+  business_hours TEXT NOT NULL
+);
+
+CREATE TABLE images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sub_list_id INTEGER NOT NULL,
+  image_url TEXT NOT NULL
+);
+
+CREATE TABLE related_url_lists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  detail_list_id INTEGER NOT NULL,
+  url TEXT NOT NULL
+);
+

@@ -385,7 +385,7 @@ const get_user_with_permission = (REQ) => {
 
 app.get('/', (req, res) => {
     console.log('Hello World, this is the TEST mode!!!!');
-    res.json({message: 'Hello World, this is the TEST mode!!!!'});
+    res.json({message: 'Hello World, this is the TEST mode!!!! in svelte app'});
 });
 
 app.get('/p2', (req, res) => {
