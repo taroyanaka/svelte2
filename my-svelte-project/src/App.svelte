@@ -1,4 +1,22 @@
 <script>
+const my_id = 1;
+const endpoint = 'http://localhost:8000';
+const fetch_read_send_matches = async () => {
+try {
+    console.log(my_id);
+    const res = await fetch(endpoint + '/get_lists', {method: 'POST',headers: {'Content-Type': 'application/json',},
+            body: JSON.stringify({user_id: my_id}),
+        });
+    const data = await res.json(); console.log(data);
+    // const data = await res.json(); console.log(data);
+    // send_matched = data.message;
+    ERROR_MESSAGE = "";
+} catch (error) {
+    ERROR_MESSAGE = error.message;
+}
+}
+
+
 	// const IN_APP = true;
 	const IN_APP = false;
 	let ERROR_MESSAGE = '';
@@ -541,6 +559,8 @@
 	
 	
 	<div class="one_pack">
+		<button on:click={()=> fetch_read_send_matches()}>fetch_read_send_matches</button>
+
 		ERROR_MESSAGE: {ERROR_MESSAGE}
 		<button on:click={()=> all_list_chain_error_check()}>all_list_chain_error_check</button>
 		{#each LIST as item, index}

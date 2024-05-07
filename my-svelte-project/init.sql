@@ -275,3 +275,16 @@ CREATE TABLE related_url_lists (
   url TEXT NOT NULL
 );
 
+-- lists sub_lists detail_lists images related_url_listsにレコードを入れる
+INSERT INTO lists (id, add_date, update_date, detail_list, sub_list) VALUES (1, DATETIME('now'), DATETIME('now'), '1', '1');
+INSERT INTO sub_lists (id, list_id, text, add_date, update_date, check_on_off, check_date, image) VALUES (1, 1, 'ABC', DATETIME('now'), DATETIME('now'), 0, DATETIME('now'), '1');
+INSERT INTO sub_lists (id, list_id, text, add_date, update_date, check_on_off, check_date, image) VALUES (2, 1, 'DEF', DATETIME('now'), DATETIME('now'), 0, DATETIME('now'), '2');
+INSERT INTO detail_lists (id, list_id, name, description, address, phone, related_url_list, nearest_station, holiday, business_hours) VALUES (1, 1, 'name1', 'description1description2description3description4description5description6description7', 'address1address2address3address4', 'phone1', 'https://www.google.com/,https://twitter.com/,https://www.apple.com/', 'nearest_station1', 'holiday1', 'business_hours1');
+INSERT INTO images (id, sub_list_id, image_url) VALUES (1, 1, 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg');
+INSERT INTO images (id, sub_list_id, image_url) VALUES (2, 1, 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg');
+INSERT INTO images (id, sub_list_id, image_url) VALUES (3, 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/320px-Amazon_Web_Services_Logo.svg.png');
+INSERT INTO images (id, sub_list_id, image_url) VALUES (4, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png');
+INSERT INTO images (id, sub_list_id, image_url) VALUES (5, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png');
+INSERT INTO related_url_lists (id, detail_list_id, url) VALUES (1, 1, 'https://www.google.com/');
+INSERT INTO related_url_lists (id, detail_list_id, url) VALUES (2, 1, 'https://twitter.com/');
+INSERT INTO related_url_lists (id, detail_list_id, url) VALUES (3, 1, 'https://www.apple.com/');

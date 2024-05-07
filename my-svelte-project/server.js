@@ -1281,3 +1281,183 @@ app.post('/update_link', (req, res) => {
         res.status(400).json({status: 400, result: 'fail', message: error.message});
     }
 });
+
+
+
+app.post('/get_lists', (req, res) => {
+// -- 以下のようなデータを作るテーブルを定義したい
+// -- {
+// --     "id": 1,
+// --     "add_date": "2024-05-06T13:13:27.414Z",
+// --     "update_date": "2024-05-06T13:13:27.414Z",
+// --     "detail_list": {
+// --         "list_id": 1,
+// --         "id": 1,
+// --         "name": "name1",
+// --         "description": "description1description2description3description4description5description6description7",
+// --         "address": "address1address2address3address4",
+// --         "phone": "phone1",
+// --         "related_url_list": [
+// --             "https://www.google.com/",
+// --             "https://twitter.com/",
+// --             "https://www.apple.com/"
+// --         ],
+// --         "nearest_station": "nearest_station1",
+// --         "holiday": "holiday1",
+// --         "business_hours": "business_hours1"
+// --     },
+// --     "sub_list": [
+// --         {
+// --             "list_id": 1,
+// --             "id": 1,
+// --             "text": "ABC",
+// --             "add_date": "2024-05-06T13:13:27.414Z",
+// --             "update_date": "2024-05-06T13:13:27.414Z",
+// --             "check_on_off": false,
+// --             "check_date": "2024-05-06T13:13:27.414Z",
+// --             "image": [
+// --                 {
+// --                     "sub_list_id": 1,
+// --                     "id": 1,
+// --                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+// --                 },
+// --                 {
+// --                     "sub_list_id": 1,
+// --                     "id": 11,
+// --                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+// --                 },
+// --                 {
+// --                     "sub_list_id": 1,
+// --                     "id": 21,
+// --                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/320px-Amazon_Web_Services_Logo.svg.png"
+// --                 }
+// --             ]
+// --         },
+// --         {
+// --             "list_id": 1,
+// --             "id": 2,
+// --             "text": "DEF",
+// --             "add_date": "2024-05-06T13:13:27.414Z",
+// --             "update_date": "2024-05-06T13:13:27.414Z",
+// --             "check_on_off": false,
+// --             "check_date": "2024-05-06T13:13:27.414Z",
+// --             "image": [
+// --                 {
+// --                     "sub_list_id": 2,
+// --                     "id": 2,
+// --                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png"
+// --                 },
+// --                 {
+// --                     "sub_list_id": 2,
+// --                     "id": 12,
+// --                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png"
+// --                 }
+// --             ]
+// --         }
+// --     ]
+// -- }
+
+// CREATE TABLE lists (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   add_date DATETIME NOT NULL,
+//   update_date DATETIME NOT NULL,
+//   detail_list TEXT NOT NULL,
+//   sub_list TEXT NOT NULL
+// );
+
+// CREATE TABLE sub_lists (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   list_id INTEGER NOT NULL,
+//   text TEXT NOT NULL,
+//   add_date DATETIME NOT NULL,
+//   update_date DATETIME NOT NULL,
+//   check_on_off INTEGER NOT NULL,
+//   check_date DATETIME NOT NULL,
+//   image TEXT NOT NULL
+// );
+
+// CREATE TABLE detail_lists (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   list_id INTEGER NOT NULL,
+//   name TEXT NOT NULL,
+//   description TEXT NOT NULL,
+//   address TEXT NOT NULL,
+//   phone TEXT NOT NULL,
+//   related_url_list TEXT NOT NULL,
+//   nearest_station TEXT NOT NULL,
+//   holiday TEXT NOT NULL,
+//   business_hours TEXT NOT NULL
+// );
+
+// CREATE TABLE images (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   sub_list_id INTEGER NOT NULL,
+//   image_url TEXT NOT NULL
+// );
+
+// CREATE TABLE related_url_lists (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   detail_list_id INTEGER NOT NULL,
+//   url TEXT NOT NULL
+// );
+
+// -- lists sub_lists detail_lists images related_url_listsにレコードを入れる
+// INSERT INTO lists (id, add_date, update_date, detail_list, sub_list) VALUES (1, DATETIME('now'), DATETIME('now'), '1', '1');
+// INSERT INTO sub_lists (id, list_id, text, add_date, update_date, check_on_off, check_date, image) VALUES (1, 1, 'ABC', DATETIME('now'), DATETIME('now'), 0, DATETIME('now'), '1');
+// INSERT INTO sub_lists (id, list_id, text, add_date, update_date, check_on_off, check_date, image) VALUES (2, 1, 'DEF', DATETIME('now'), DATETIME('now'), 0, DATETIME('now'), '2');
+// INSERT INTO detail_lists (id, list_id, name, description, address, phone, related_url_list, nearest_station, holiday, business_hours) VALUES (1, 1, 'name1', 'description1description2description3description4description5description6description7', 'address1address2address3address4', 'phone1', 'https://www.google.com/,https://twitter.com/,https://www.apple.com/', 'nearest_station1', 'holiday1', 'business_hours1');
+// INSERT INTO images (id, sub_list_id, image_url) VALUES (1, 1, 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg');
+// INSERT INTO images (id, sub_list_id, image_url) VALUES (2, 1, 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg');
+// INSERT INTO images (id, sub_list_id, image_url) VALUES (3, 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/320px-Amazon_Web_Services_Logo.svg.png');
+// INSERT INTO images (id, sub_list_id, image_url) VALUES (4, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png');
+// INSERT INTO images (id, sub_list_id, image_url) VALUES (5, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/202px-Apple_logo_grey.svg.png');
+// INSERT INTO related_url_lists (id, detail_list_id, url) VALUES (1, 1, 'https://www.google.com/');
+// INSERT INTO related_url_lists (id, detail_list_id, url) VALUES (2, 1, 'https://twitter.com/');
+// INSERT INTO related_url_lists (id, detail_list_id, url) VALUES (3, 1, 'https://www.apple.com/');
+try {
+    // reqからユーザー情報を取得する
+    // const user = get_user_with_permission(req);
+    // user.readable === 1 ? null : (()=>{throw new Error('読み込み権限がありません')})();
+    const lists = db.prepare(`SELECT * FROM lists`).all();
+    const detail_list = db.prepare(`SELECT * FROM detail_lists`).all();
+    const sub_list = db.prepare(`SELECT * FROM sub_lists`).all();
+    const images = db.prepare(`SELECT * FROM images`).all();
+    const related_url_lists = db.prepare(`SELECT * FROM related_url_lists`).all();
+    lists ? null : (()=>{throw new Error('listsが取得できませんでした')})();
+    const result = lists.map((V, I) => {
+        const with_detail_list = detail_list.filter((V2, I2) => V2.list_id === V.id);
+        const with_sub_list = sub_list.filter((V2, I2) => V2.list_id === V.id);
+        const with_images = images.filter((V2, I2) => V2.sub_list_id === V.id);
+        const with_related_url_lists = related_url_lists.filter((V2, I2) => V2.detail_list_id === V.id);
+        return {
+            id: V.id,
+            add_date: V.add_date,
+            update_date: V.update_date,
+            detail_list: with_detail_list,
+            sub_list: with_sub_list.map((V2, I2) => {
+                return {
+                    list_id: V2.list_id,
+                    id: V2.id,
+                    text: V2.text,
+                    add_date: V2.add_date,
+                    update_date: V2.update_date,
+                    check_on_off: V2.check_on_off,
+                    check_date: V2.check_date,
+                    image: with_images.filter((V3, I3) => V3.sub_list_id === V2.id)
+                };
+            }),
+            related_url_list: with_related_url_lists
+        };
+    }
+    );
+    res.status(200)
+        .json({result: 'success'
+            ,status: 200
+            ,message: result
+        });
+} catch (error) {
+    console.log(error);
+    res.status(400).json({status: 400, result: 'fail', message: error.message});   
+}       
+}
+);
