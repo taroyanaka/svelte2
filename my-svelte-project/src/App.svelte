@@ -1,6 +1,7 @@
 <script>
 const my_id = 1;
 const endpoint = 'http://localhost:8000';
+let fetch_res = null;
 const fetch_read_send_matches = async () => {
 try {
     console.log(my_id);
@@ -9,12 +10,59 @@ try {
         });
     const data = await res.json(); console.log(data);
     // const data = await res.json(); console.log(data);
-    // send_matched = data.message;
+    fetch_res = data.message;
     ERROR_MESSAGE = "";
 } catch (error) {
     ERROR_MESSAGE = error.message;
 }
 }
+
+let list = {
+    id: '',
+    add_date: '',
+    update_date: '',
+    detail_list: '',
+    sub_list: ''
+  };
+
+  let subList = {
+    id: '',
+    list_id: '',
+    text: '',
+    add_date: '',
+    update_date: '',
+    check_on_off: '',
+    check_date: '',
+    image: ''
+  };
+
+  let detailList = {
+    id: '',
+    list_id: '',
+    name: '',
+    description: '',
+    address: '',
+    phone: '',
+    related_url_list: '',
+    nearest_station: '',
+    holiday: '',
+    business_hours: ''
+  };
+
+  let image = {
+    id: '',
+    sub_list_id: '',
+    image_url: ''
+  };
+
+  let relatedUrlList = {
+    id: '',
+    detail_list_id: '',
+    url: ''
+  };
+
+  // TODO: Add form submission logic
+
 
 
 	// const IN_APP = true;
@@ -558,8 +606,163 @@ try {
 	
 	
 	
-	<div class="one_pack">
-		<button on:click={()=> fetch_read_send_matches()}>fetch_read_send_matches</button>
+<div class="one_pack">
+<form>
+	<h2>List</h2>
+	<input bind:value={list.id} placeholder="id">
+	<!-- Add other fields for list
+	    add_date: '',
+    update_date: '',
+    detail_list: '',
+    sub_list: ''
+   -->
+   	<input type="datetime" name="" id="" bind:value={list.add_date} placeholder="add_date">
+	<!-- update_date -->
+	<input type="datetime" name="" id="" bind:value={list.update_date} placeholder="update_date">
+	<!-- detail_list -->
+	<input bind:value={list.detail_list.id} placeholder="detail_list_id">
+	<!-- sub_list -->
+	<input bind:value={list.sub_list.id} placeholder="sub_list_id">
+
+	
+	<h2>Sub List</h2>
+	<input bind:value={subList.id} placeholder="id">
+	<!-- Add other fields for subList -->
+	<!-- list_id: '',
+    text: '',
+    add_date: '',
+    update_date: '',
+    check_on_off: '',
+    check_date: '',
+    image: '' -->
+	<!-- list_id -->
+	<input bind:value={subList.list_id} placeholder="list_id">
+	<!-- text -->
+	<input bind:value={subList.text} placeholder="text">
+	<!-- add_date -->
+	<input type="datetime" name="" id="" bind:value={subList.add_date} placeholder="add_date">
+	<!-- update_date -->
+	<input type="datetime" name="" id="" bind:value={subList.update_date} placeholder="update_date">
+	<!-- check_on_off -->
+	<input type="checkbox" bind:checked={subList.check_on_off} placeholder="check_on_off">
+	<!-- check_date -->
+	<input type="datetime" name="" id="" bind:value={subList.check_date} placeholder="check_date">
+	<!-- image -->
+	<input bind:value={subList.image.id} placeholder="image_id">
+	
+	<h2>Detail List</h2>
+	<input bind:value={detailList.id} placeholder="id">
+	<!-- Add other fields for detailList -->
+	<!--     list_id: '',
+    name: '',
+    description: '',
+    address: '',
+    phone: '',
+    related_url_list: '',
+    nearest_station: '',
+    holiday: '',
+    business_hours: '' -->
+<!-- list_id -->
+	<input bind:value={detailList.list_id} placeholder="list_id">
+	<!-- name  -->
+	<input bind:value={detailList.name} placeholder="name">
+	<!-- description -->
+	<input bind:value={detailList.description} placeholder="description">
+	<!-- address -->
+	<input bind:value={detailList.address} placeholder="address">
+	<!-- phone -->
+	<input bind:value={detailList.phone} placeholder="phone">
+	<!-- related_url_list -->
+	<input bind:value={detailList.related_url_list.id} placeholder="related_url_list_id">
+	<!-- nearest_station -->
+	<input bind:value={detailList.nearest_station} placeholder="nearest_station">
+	<!-- holiday -->
+	<input bind:value={detailList.holiday} placeholder="holiday">
+	<!-- business_hours -->
+	<input bind:value={detailList.business_hours} placeholder="business_hours">
+
+
+	
+	<h2>Image</h2>
+	<input bind:value={image.id} placeholder="id">
+	<!-- Add other fields for image -->
+	<!-- sub_list_id: '',
+    image_url: '' -->
+	<!-- sub_list_id -->
+	<input bind:value={image.sub_list_id} placeholder="sub_list_id">
+	<!-- image_url -->
+	<input bind:value={image.image_url} placeholder="image_url">
+
+	
+	<h2>Related URL List</h2>
+	<input bind:value={relatedUrlList.id} placeholder="id">
+	<!-- Add other fields for relatedUrlList -->
+	<!-- detail_list_id: '',
+    url: '' -->
+	<!-- detail_list_id -->
+	<input bind:value={relatedUrlList.detail_list_id} placeholder="detail_list_id">
+	<!-- url -->
+	<input bind:value={relatedUrlList.url} placeholder="url">
+	
+	<button type="submit">Submit</button>
+</form>
+	
+<button on:click={()=> fetch_read_send_matches()}>fetch_read_send_matches</button>
+{#if fetch_res}
+{#each fetch_res as Item, index}
+<div>id: {Item.id}</div>
+<div>update_date: {Item.update_date}</div>
+<div>add_date: {Item.add_date}</div>
+
+{#if Item.related_url_list}
+related_url_list:
+{#each Item.related_url_list as related_url_item, related_url_index}
+<div class="indent_2">{related_url_item.id}</div>
+<div class="indent_2">{related_url_item.url}</div>
+<!-- <div class="indent_2">{related_url_item.detail_list_id}</div> -->
+{/each}
+{/if}
+
+{#if Item.sub_list}
+sub_list:
+{#each Item.sub_list as sub_item, sub_index}
+	<div class="indent_2">{sub_item.id}</div>
+	<div class="indent_2">{sub_item.add_date}</div>
+	<div class="indent_2">{sub_item.check_date}</div>
+	<div class="indent_2">{sub_item.check_on_off}</div>
+	<div>
+		{#if sub_item.image}
+		{#each sub_item.image as image_item, image_index}
+			<div class="indent_4">{image_item.id}</div>
+			<div class="indent_4">{image_item.image_url}</div>
+			<!-- <div class="indent_4">{image_item.sub_list_id}</div> -->
+		{/each}
+		{/if}
+	</div>
+	<div class="indent_2">{sub_item.list_id}</div>
+	<div class="indent_2">{sub_item.text}</div>
+	<div class="indent_2">{sub_item.update_date}</div>
+{/each}
+{/if}
+
+{#if Item.detail_list}
+detail_list:
+{#each Item.detail_list as detail_item, detail_index}
+	<div class="indent_2">{detail_item.id}</div>
+	<div class="indent_2">{detail_item.address}</div>
+	<div class="indent_2">{detail_item.business_hours}</div>
+	<div class="indent_2">{detail_item.description}</div>
+	<div class="indent_2">{detail_item.holiday}</div>
+	<div class="indent_2">{detail_item.name}</div>
+	<div class="indent_2">{detail_item.nearest_station}</div>
+	<div class="indent_2">{detail_item.phone}</div>
+	<div class="indent_2">{detail_item.related_url_list}</div>
+	<!-- <div class="indent_2">{detail_item.list_id}</div> -->
+{/each}
+{/if}
+
+{/each}
+{/if}
 
 		ERROR_MESSAGE: {ERROR_MESSAGE}
 		<button on:click={()=> all_list_chain_error_check()}>all_list_chain_error_check</button>
@@ -632,5 +835,11 @@ try {
 		.image_resize{
 			width: 2rem;
 			height: 2rem;
+		}
+		.indent_2{
+			margin-left: 2rem;
+		}
+		.indent_4{
+			margin-left: 4rem;
 		}
 	</style>
