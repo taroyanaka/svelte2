@@ -688,8 +688,6 @@ try {
 	{#each list as list_item, list_index}
 	{list_item}
 	<input type="number" bind:value={list_item.id} placeholder="id">
-	<input type="number" bind:value={list_item.detail_list.id} placeholder="detail_list_id">
-	<input type="number" bind:value={list_item.sub_list.id} placeholder="sub_list_id">
 	<input type="datetime" name="" id="" bind:value={list_item.add_date} placeholder="add_date">
 	<input type="datetime" name="" id="" bind:value={list_item.update_date} placeholder="update_date">
 		<h2>Sub List</h2>
@@ -697,9 +695,17 @@ try {
 		{#each list_item.sub_list as sub_item, sub_index}
 		<input type="number" bind:value={sub_item.id} placeholder="id">
 		<input type="number" bind:value={sub_item.list_id} placeholder="list_id">
-		<input type="number" bind:value={sub_item.image.id} placeholder="image_id">
+		<!-- <input type="number" bind:value={sub_item.image_id} placeholder="image_id"> -->
+		{#if sub_item.image}
+		{#each sub_item.image as image_item, image_index}
+<input type="number" bind:value={image_item.id} placeholder="id">
+<input type="number" bind:value={image_item.sub_list_id} placeholder="sub_list_id">
+<input type="text" bind:value={image_item.image_url} placeholder="image_url">
+		{/each}
+		{/if}
+
 		<input type="text" bind:value={sub_item.text} placeholder="text">
-		<input type="checkbox" bind:checked={sub_item.check_on_off} placeholder="check_on_off">
+		<input type="checkbox" on:change={(e) => sub_item.check_on_off = e.target.checked ? 1 : 0} placeholder="check_on_off">
 		<input type="datetime" name="" id="" bind:value={sub_item.add_date} placeholder="add_date">
 		<input type="datetime" name="" id="" bind:value={sub_item.update_date} placeholder="update_date">
 		<input type="datetime" name="" id="" bind:value={sub_item.check_date} placeholder="check_date">
@@ -711,7 +717,7 @@ try {
 		{#each list_item.detail_list as detail_item, detail_index}
 		<input type="number" bind:value={detail_item.id} placeholder="id">
 		<input type="number" bind:value={detail_item.list_id} placeholder="list_id">
-		<input type="number" bind:value={detail_item.related_url_list.id} placeholder="related_url_list_id">
+		<input type="text" bind:value={detail_item.related_url_list} placeholder="related_url_list_id">
 		<input type="text" bind:value={detail_item.name} placeholder="name">
 		<input type="text" bind:value={detail_item.description} placeholder="description">
 		<input type="text" bind:value={detail_item.address} placeholder="address">
