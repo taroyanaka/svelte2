@@ -2,6 +2,120 @@
 const my_id = 1;
 const endpoint = 'http://localhost:8000';
 let fetch_res = null;
+
+let list = [];
+// let subList = [];
+// let detailList = [];
+// let image = [];
+// let relatedUrlList = [];
+
+// let list = null;
+// let subList = null;
+// let detailList = null;
+// let image = null;
+// let relatedUrlList = null;
+
+// fetch_res変数からこれらのobjectにデータを入れる関数 list subList detailList image relatedUrlList
+const set_data = (Fetch_Res) => {
+	console.log(Fetch_Res);
+	// 以下を元にFetch_Resからデータを格納して
+// 	{
+//     "id": 1,
+//     "add_date": "2024-05-07 00:04:26",
+//     "update_date": "2024-05-07 00:04:26",
+//     "detail_list": [
+//         {
+//             "id": 1,
+//             "list_id": 1,
+//             "name": "name1",
+//             "description": "description1description2description3description4description5description6description7",
+//             "address": "address1address2address3address4",
+//             "phone": "phone1",
+//             "related_url_list": "https://www.google.com/,https://twitter.com/,https://www.apple.com/",
+//             "nearest_station": "nearest_station1",
+//             "holiday": "holiday1",
+//             "business_hours": "business_hours1"
+//         }
+//     ],
+//     "sub_list": [
+//         {
+//             "list_id": 1,
+//             "id": 1,
+//             "text": "ABC",
+//             "add_date": "2024-05-07 00:04:26",
+//             "update_date": "2024-05-07 00:04:26",
+//             "check_on_off": 0,
+//             "check_date": "2024-05-07 00:04:26",
+//             "image": [
+//                 {
+//                     "id": 1,
+//                     "sub_list_id": 1,
+//                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+//                 },
+//                 {
+//                     "id": 2,
+//                     "sub_list_id": 1,
+//                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+//                 },
+//                 {
+//                     "id": 3,
+//                     "sub_list_id": 1,
+//                     "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/320px-Amazon_Web_Services_Logo.svg.png"
+//                 }
+//             ]
+//         },
+//         {
+//             "list_id": 1,
+//             "id": 2,
+//             "text": "DEF",
+//             "add_date": "2024-05-07 00:04:26",
+//             "update_date": "2024-05-07 00:04:26",
+//             "check_on_off": 0,
+//             "check_date": "2024-05-07 00:04:26",
+//             "image": []
+//         }
+//     ],
+//     "related_url_list": [
+//         {
+//             "id": 1,
+//             "detail_list_id": 1,
+//             "url": "https://www.google.com/"
+//         },
+//         {
+//             "id": 2,
+//             "detail_list_id": 1,
+//             "url": "https://twitter.com/"
+//         },
+//         {
+//             "id": 3,
+//             "detail_list_id": 1,
+//             "url": "https://www.apple.com/"
+//         }
+//     ]
+// }
+
+// 以上のようにFetch_Resからデータを格納して
+Fetch_Res.forEach((item, index) => {
+	console.log(item);
+	list = [...list, item];
+	item.detail_list.forEach((detail_item) => {
+		detailList = [...detailList, detail_item];
+	});
+	item.sub_list.forEach((sub_item) => {
+		subList = [...subList, sub_item];
+		sub_item.image.forEach((image_item) => {
+			image = [...image, image_item];
+		});
+	});
+	item.related_url_list.forEach((related_url_item) => {
+		relatedUrlList = [...relatedUrlList, related_url_item];
+	});
+});
+
+
+
+}
+
 const fetch_read_send_matches = async () => {
 try {
     console.log(my_id);
@@ -11,55 +125,13 @@ try {
     const data = await res.json(); console.log(data);
     // const data = await res.json(); console.log(data);
     fetch_res = data.message;
+	set_data(fetch_res);
     ERROR_MESSAGE = "";
 } catch (error) {
     ERROR_MESSAGE = error.message;
 }
 }
 
-let list = {
-    id: '',
-    add_date: '',
-    update_date: '',
-    detail_list: '',
-    sub_list: ''
-  };
-
-  let subList = {
-    id: '',
-    list_id: '',
-    text: '',
-    add_date: '',
-    update_date: '',
-    check_on_off: '',
-    check_date: '',
-    image: ''
-  };
-
-  let detailList = {
-    id: '',
-    list_id: '',
-    name: '',
-    description: '',
-    address: '',
-    phone: '',
-    related_url_list: '',
-    nearest_station: '',
-    holiday: '',
-    business_hours: ''
-  };
-
-  let image = {
-    id: '',
-    sub_list_id: '',
-    image_url: ''
-  };
-
-  let relatedUrlList = {
-    id: '',
-    detail_list_id: '',
-    url: ''
-  };
 
   // TODO: Add form submission logic
 
@@ -607,107 +679,74 @@ let list = {
 	
 	
 <div class="one_pack">
+<button on:click={()=> fetch_read_send_matches()}>fetch_read_send_matches</button>
+
 <form>
+	<!-- {list[0]} -->
 	<h2>List</h2>
-	<input bind:value={list.id} placeholder="id">
-	<!-- Add other fields for list
-	    add_date: '',
-    update_date: '',
-    detail_list: '',
-    sub_list: ''
-   -->
-   	<input type="datetime" name="" id="" bind:value={list.add_date} placeholder="add_date">
-	<!-- update_date -->
-	<input type="datetime" name="" id="" bind:value={list.update_date} placeholder="update_date">
-	<!-- detail_list -->
-	<input bind:value={list.detail_list.id} placeholder="detail_list_id">
-	<!-- sub_list -->
-	<input bind:value={list.sub_list.id} placeholder="sub_list_id">
+	{#if list}
+	{#each list as list_item, list_index}
+	{list_item}
+	<input type="number" bind:value={list_item.id} placeholder="id">
+	<input type="number" bind:value={list_item.detail_list.id} placeholder="detail_list_id">
+	<input type="number" bind:value={list_item.sub_list.id} placeholder="sub_list_id">
+	<input type="datetime" name="" id="" bind:value={list_item.add_date} placeholder="add_date">
+	<input type="datetime" name="" id="" bind:value={list_item.update_date} placeholder="update_date">
+		<h2>Sub List</h2>
+		{#if list_item.sub_list}
+		{#each list_item.sub_list as sub_item, sub_index}
+		<input type="number" bind:value={sub_item.id} placeholder="id">
+		<input type="number" bind:value={sub_item.list_id} placeholder="list_id">
+		<input type="number" bind:value={sub_item.image.id} placeholder="image_id">
+		<input type="text" bind:value={sub_item.text} placeholder="text">
+		<input type="checkbox" bind:checked={sub_item.check_on_off} placeholder="check_on_off">
+		<input type="datetime" name="" id="" bind:value={sub_item.add_date} placeholder="add_date">
+		<input type="datetime" name="" id="" bind:value={sub_item.update_date} placeholder="update_date">
+		<input type="datetime" name="" id="" bind:value={sub_item.check_date} placeholder="check_date">
+		{/each}
+		{/if}
+			
+		<h2>Detail List</h2>
+		{#if list_item.detail_list}
+		{#each list_item.detail_list as detail_item, detail_index}
+		<input type="number" bind:value={detail_item.id} placeholder="id">
+		<input type="number" bind:value={detail_item.list_id} placeholder="list_id">
+		<input type="number" bind:value={detail_item.related_url_list.id} placeholder="related_url_list_id">
+		<input type="text" bind:value={detail_item.name} placeholder="name">
+		<input type="text" bind:value={detail_item.description} placeholder="description">
+		<input type="text" bind:value={detail_item.address} placeholder="address">
+		<input type="text" bind:value={detail_item.nearest_station} placeholder="nearest_station">
+		<input type="text" bind:value={detail_item.holiday} placeholder="holiday">
+		<input type="text" bind:value={detail_item.business_hours} placeholder="business_hours">
+		<input type="tel" bind:value={detail_item.phone} placeholder="phone">
+		{/each}
+		{/if}
 
-	
-	<h2>Sub List</h2>
-	<input bind:value={subList.id} placeholder="id">
-	<!-- Add other fields for subList -->
-	<!-- list_id: '',
-    text: '',
-    add_date: '',
-    update_date: '',
-    check_on_off: '',
-    check_date: '',
-    image: '' -->
-	<!-- list_id -->
-	<input bind:value={subList.list_id} placeholder="list_id">
-	<!-- text -->
-	<input bind:value={subList.text} placeholder="text">
-	<!-- add_date -->
-	<input type="datetime" name="" id="" bind:value={subList.add_date} placeholder="add_date">
-	<!-- update_date -->
-	<input type="datetime" name="" id="" bind:value={subList.update_date} placeholder="update_date">
-	<!-- check_on_off -->
-	<input type="checkbox" bind:checked={subList.check_on_off} placeholder="check_on_off">
-	<!-- check_date -->
-	<input type="datetime" name="" id="" bind:value={subList.check_date} placeholder="check_date">
-	<!-- image -->
-	<input bind:value={subList.image.id} placeholder="image_id">
-	
-	<h2>Detail List</h2>
-	<input bind:value={detailList.id} placeholder="id">
-	<!-- Add other fields for detailList -->
-	<!--     list_id: '',
-    name: '',
-    description: '',
-    address: '',
-    phone: '',
-    related_url_list: '',
-    nearest_station: '',
-    holiday: '',
-    business_hours: '' -->
-<!-- list_id -->
-	<input bind:value={detailList.list_id} placeholder="list_id">
-	<!-- name  -->
-	<input bind:value={detailList.name} placeholder="name">
-	<!-- description -->
-	<input bind:value={detailList.description} placeholder="description">
-	<!-- address -->
-	<input bind:value={detailList.address} placeholder="address">
-	<!-- phone -->
-	<input bind:value={detailList.phone} placeholder="phone">
-	<!-- related_url_list -->
-	<input bind:value={detailList.related_url_list.id} placeholder="related_url_list_id">
-	<!-- nearest_station -->
-	<input bind:value={detailList.nearest_station} placeholder="nearest_station">
-	<!-- holiday -->
-	<input bind:value={detailList.holiday} placeholder="holiday">
-	<!-- business_hours -->
-	<input bind:value={detailList.business_hours} placeholder="business_hours">
+		<!-- <h2>Image</h2>
+		{#if list_item.image}
+		{#each list_item.image as image_item, image_index}
+		<input type="number" bind:value={image_item.id} placeholder="id">
+		<input type="number" bind:value={image_item.sub_list_id} placeholder="sub_list_id">
+		<input type="url" bind:value={image_item.image_url} placeholder="image_url">
+		{/each}
+		{/if} -->
+		
+		<h2>Related URL List</h2>
+		{#if list_item.related_url_list}
+		{#each list_item.related_url_list as related_url_item, related_url_index}
+		<input type="number" bind:value={related_url_item.id} placeholder="id">
+		<input type="number" bind:value={related_url_item.detail_list_id} placeholder="detail_list_id">
+		<input type="url" bind:value={related_url_item.url} placeholder="url">
+		{/each}
+		{/if}
 
+	{/each}
+	{/if}
+	
 
-	
-	<h2>Image</h2>
-	<input bind:value={image.id} placeholder="id">
-	<!-- Add other fields for image -->
-	<!-- sub_list_id: '',
-    image_url: '' -->
-	<!-- sub_list_id -->
-	<input bind:value={image.sub_list_id} placeholder="sub_list_id">
-	<!-- image_url -->
-	<input bind:value={image.image_url} placeholder="image_url">
-
-	
-	<h2>Related URL List</h2>
-	<input bind:value={relatedUrlList.id} placeholder="id">
-	<!-- Add other fields for relatedUrlList -->
-	<!-- detail_list_id: '',
-    url: '' -->
-	<!-- detail_list_id -->
-	<input bind:value={relatedUrlList.detail_list_id} placeholder="detail_list_id">
-	<!-- url -->
-	<input bind:value={relatedUrlList.url} placeholder="url">
-	
 	<button type="submit">Submit</button>
 </form>
 	
-<button on:click={()=> fetch_read_send_matches()}>fetch_read_send_matches</button>
 {#if fetch_res}
 {#each fetch_res as Item, index}
 <div>id: {Item.id}</div>
